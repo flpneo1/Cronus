@@ -1,48 +1,18 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
+#define HERCULES_CORE
 
 #include "random.h"
 
-#include <time.h> // time
+#include "common/cbasetypes.h" // for WIN32
+#include "common/showmsg.h"
+#include "common/timer.h" // gettick
 
-#include <mt19937ar.h> // init_genrand, genrand_int32, genrand_res53
-
-#include "../common/cbasetypes.h" // for WIN32
-#include "../common/showmsg.h"
-#include "../common/timer.h" // gettick
+#include <mt19937ar/mt19937ar.h> // init_genrand, genrand_int32, genrand_res53
 
 #if defined(WIN32)
-#	include "../common/winapi.h"
+#	include "common/winapi.h"
 #elif defined(HAVE_GETPID) || defined(HAVE_GETTID)
 #	include <sys/types.h>
 #	include <unistd.h>

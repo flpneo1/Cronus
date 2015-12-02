@@ -1,61 +1,38 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
+
+#define HERCULES_CORE
 
 #include "battleground.h"
+
+#include "map/battle.h"
+#include "map/clif.h"
+#include "map/guild.h"
+#include "map/homunculus.h"
+#include "map/map.h"
+#include "map/mapreg.h"
+#include "map/mercenary.h"
+#include "map/mob.h" // struct mob_data
+#include "map/npc.h"
+#include "map/party.h"
+#include "map/pc.h"
+#include "map/pet.h"
+#include "common/cbasetypes.h"
+#include "common/conf.h"
+#include "common/HPM.h"
+#include "common/memmgr.h"
+#include "common/nullpo.h"
+#include "common/showmsg.h"
+#include "common/socket.h"
+#include "common/strlib.h"
+#include "common/timer.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#include "battle.h"
-#include "clif.h"
-#include "homunculus.h"
-#include "map.h"
-#include "mapreg.h"
-#include "mercenary.h"
-#include "mob.h" // struct mob_data
-#include "npc.h"
-#include "party.h"
-#include "pc.h"
-#include "pet.h"
-#include "../common/cbasetypes.h"
-#include "../common/conf.h"
-#include "../common/malloc.h"
-#include "../common/showmsg.h"
-#include "../common/socket.h"
-#include "../common/strlib.h"
-#include "../common/timer.h"
-
 struct battleground_interface bg_s;
+struct battleground_interface *bg;
 
 /// Search a BG Team using bg_id
 struct battleground_data* bg_team_search(int bg_id) {
@@ -65,7 +42,7 @@ struct battleground_data* bg_team_search(int bg_id) {
 
 struct map_session_data* bg_getavailablesd(struct battleground_data *bgd) {
 	int i;
-	if (!bgd) return NULL;
+	nullpo_retr(NULL, bgd);
 	ARR_FIND(0, MAX_BG_MEMBERS, i, bgd->members[i].sd != NULL);
 	return( i < MAX_BG_MEMBERS ) ? bgd->members[i].sd : NULL;
 }
@@ -73,13 +50,12 @@ struct map_session_data* bg_getavailablesd(struct battleground_data *bgd) {
 /// Deletes BG Team from db
 bool bg_team_delete(int bg_id) {
 	int i;
-	struct map_session_data *sd;
 	struct battleground_data *bgd = bg->team_search(bg_id);
 
-	if(!bgd) return false;
-	
+	if( bgd == NULL ) return false;
 	for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
-		if( (sd = bgd->members[i].sd) == NULL )
+		struct map_session_data *sd = bgd->members[i].sd;
+		if (sd == NULL)
 			continue;
 
 		bg->send_dot_remove(sd);
@@ -93,7 +69,7 @@ bool bg_team_delete(int bg_id) {
 bool bg_team_warp(int bg_id, unsigned short map_index, short x, short y) {
 	int i;
 	struct battleground_data *bgd = bg->team_search(bg_id);
-	if(!bgd) return false;
+	if( bgd == NULL ) return false;
 	for( i = 0; i < MAX_BG_MEMBERS; i++ )
 		if( bgd->members[i].sd != NULL ) pc->setpos(bgd->members[i].sd, map_index, x, y, CLR_TELEPORT);
 	return true;
@@ -108,9 +84,8 @@ void bg_send_dot_remove(struct map_session_data *sd) {
 bool bg_team_join(int bg_id, struct map_session_data *sd) {
 	int i;
 	struct battleground_data *bgd = bg->team_search(bg_id);
-	struct map_session_data *pl_sd;
 
-	if( !bgd || !sd || sd->bg_id ) return false;
+	if( bgd == NULL || sd == NULL || sd->bg_id ) return false;
 
 	ARR_FIND(0, MAX_BG_MEMBERS, i, bgd->members[i].sd == NULL);
 	if( i == MAX_BG_MEMBERS ) return false; // No free slots
@@ -133,7 +108,8 @@ bool bg_team_join(int bg_id, struct map_session_data *sd) {
 	guild->send_dot_remove(sd);
 
 	for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
-		if( (pl_sd = bgd->members[i].sd) != NULL && pl_sd != sd )
+		struct map_session_data *pl_sd = bgd->members[i].sd;
+		if (pl_sd != NULL && pl_sd != sd)
 			clif->hpmeter_single(sd->fd, pl_sd->bl.id, pl_sd->battle_status.hp, pl_sd->battle_status.max_hp);
 	}
 
@@ -146,11 +122,9 @@ bool bg_team_join(int bg_id, struct map_session_data *sd) {
 int bg_team_leave(struct map_session_data *sd, enum bg_team_leave_type flag) {
 	int i, bg_id;
 	struct battleground_data *bgd;
-	char output[128];
-	
-	if (!sd) return 0;
-	if (!sd->bg_id ) return 0;
-		
+
+	if( sd == NULL || !sd->bg_id )
+		return 0;
 	bg->send_dot_remove(sd);
 	bg_id = sd->bg_id;
 	sd->bg_id = 0;
@@ -167,17 +141,18 @@ int bg_team_leave(struct map_session_data *sd, enum bg_team_leave_type flag) {
 		memset(&bgd->members[i], 0, sizeof(bgd->members[0]));
 	}
 
-	if( --bgd->count != 0 ) {
-		switch( flag ) {
+	if (--bgd->count != 0) {
+		char output[128];
+		switch (flag) {
 			default:
 			case BGTL_QUIT:
-				sprintf(output, "Servidor: %s saiu da partida...", sd->status.name);
+				sprintf(output, "Server : %s has quit the game...", sd->status.name);
 				break;
 			case BGTL_LEFT:
-				sprintf(output, "Servidor: %s está abandonando a arena de batalha...", sd->status.name);
+				sprintf(output, "Server : %s is leaving the battlefield...", sd->status.name);
 				break;
 			case BGTL_AFK:
-				sprintf(output, "Servidor: %s foi removido da arena por inatividade...", sd->status.name);
+				sprintf(output, "Server : %s has been afk-kicked from the battlefield...", sd->status.name);
 				break;
 		}
 		clif->bg_message(bgd, 0, "Server", output, strlen(output) + 1);
@@ -185,11 +160,11 @@ int bg_team_leave(struct map_session_data *sd, enum bg_team_leave_type flag) {
 
 	if( bgd->logout_event[0] && flag )
 		npc->event(sd, bgd->logout_event, 0);
-	
+
 	if( sd->bg_queue.arena ) {
 		bg->queue_pc_cleanup(sd);
 	}
-	
+
 	return bgd->count;
 }
 
@@ -226,9 +201,7 @@ int bg_create(unsigned short map_index, short rx, short ry, const char *ev, cons
 }
 
 int bg_team_get_id(struct block_list *bl) {
-
-	if (!bl) return 0;
-	
+	nullpo_ret(bl);
 	switch( bl->type ) {
 		case BL_PC:
 			return ((TBL_PC*)bl)->bg_id;
@@ -240,7 +213,7 @@ int bg_team_get_id(struct block_list *bl) {
 		{
 			struct map_session_data *msd;
 			struct mob_data *md = (TBL_MOB*)bl;
-			if( md->special_state.ai && (msd = map->id2sd(md->master_id)) != NULL )
+			if (md->special_state.ai != AI_NONE && (msd = map->id2sd(md->master_id)) != NULL)
 				return msd->bg_id;
 			return md->bg_id;
 		}
@@ -262,8 +235,8 @@ int bg_team_get_id(struct block_list *bl) {
 bool bg_send_message(struct map_session_data *sd, const char *mes, int len) {
 	struct battleground_data *bgd;
 
-	if (!sd) return 0;
-	
+	nullpo_ret(sd);
+	nullpo_ret(mes);
 	if( sd->bg_id == 0 || (bgd = bg->team_search(sd->bg_id)) == NULL )
 		return false; // Couldn't send message
 	clif->bg_message(bgd, sd->bl.id, sd->status.name, mes, len);
@@ -277,9 +250,7 @@ int bg_send_xy_timer_sub(DBKey key, DBData *data, va_list ap) {
 	struct battleground_data *bgd = DB->data2ptr(data);
 	struct map_session_data *sd;
 	int i;
-	
-	if (!bgd) return 0;
-	
+	nullpo_ret(bgd);
 	for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
 		if( (sd = bgd->members[i].sd) == NULL )
 			continue;
@@ -300,27 +271,28 @@ int bg_send_xy_timer(int tid, int64 tick, int id, intptr_t data) {
 enum bg_queue_types bg_str2teamtype (const char *str) {
 	char temp[200], *parse;
 	enum bg_queue_types type = BGQT_INVALID;
-	
+
+	nullpo_retr(type, str);
 	safestrncpy(temp, str, 200);
-	
+
 	parse = strtok(temp,"|");
-	
+
 	while (parse != NULL) {
 		normalize_name(parse," ");
-		if( strcasecmp(parse,"all") == 0 )
+		if( strcmpi(parse,"all") == 0 )
 			type |= BGQT_INDIVIDUAL|BGQT_PARTY|BGQT_GUILD;
-		else if( strcasecmp(parse,"party") == 0 )
+		else if( strcmpi(parse,"party") == 0 )
 			type |= BGQT_PARTY;
-		else if( strcasecmp(parse,"guild") == 0 )
+		else if( strcmpi(parse,"guild") == 0 )
 			type |= BGQT_GUILD;
-		else if( strcasecmp(parse,"solo") == 0 )
+		else if( strcmpi(parse,"solo") == 0 )
 			type |= BGQT_INDIVIDUAL;
 		else {
-			ShowError("Tipo indefinido para time da BG : '%s'. Ignorando...\n",parse);
+			ShowError("bg_str2teamtype: '%s' unknown type, skipping...\n",parse);
 		}
 		parse = strtok(NULL,"|");
 	}
-	
+
 	return type;
 }
 
@@ -328,32 +300,32 @@ void bg_config_read(void) {
 	config_t bg_conf;
 	config_setting_t *data = NULL;
 	const char *config_filename = "conf/battlegrounds.conf"; // FIXME hardcoded name
-	
+
 	if (libconfig->read_file(&bg_conf, config_filename))
 		return;
-	
+
 	data = libconfig->lookup(&bg_conf, "battlegrounds");
-	
+
 	if (data != NULL) {
 		config_setting_t *settings = libconfig->setting_get_elem(data, 0);
 		config_setting_t *arenas;
 		const char *delay_var;
-		int i, arena_count = 0, offline = 0;
-		
+		int offline = 0;
+
 		if( !libconfig->setting_lookup_string(settings, "global_delay_var", &delay_var) )
 			delay_var = "BG_Delay_Tick";
-		
+
 		safestrncpy(bg->gdelay_var, delay_var, BG_DELAY_VAR_LENGTH);
-		
+
 		libconfig->setting_lookup_int(settings, "maximum_afk_seconds", &bg->mafksec);
-				
 		libconfig->setting_lookup_bool(settings, "feature_off", &offline);
 
 		if( offline == 0 )
 			bg->queue_on = true;
 
 		if( (arenas = libconfig->setting_get_member(settings, "arenas")) != NULL ) {
-			arena_count = libconfig->setting_length(arenas);
+			int i;
+			int arena_count = libconfig->setting_length(arenas);
 			CREATE( bg->arena, struct bg_arena *, arena_count );
 			for(i = 0; i < arena_count; i++) {
 				config_setting_t *arena = libconfig->setting_get_elem(arenas, i);
@@ -365,105 +337,104 @@ void bg_config_read(void) {
 				int maxDuration;
 				int fillup_duration = 0, pregame_duration = 0;
 				enum bg_queue_types allowedTypes;
-				
+
 				bg->arena[i] = NULL;
-				
+
 				if( !libconfig->setting_lookup_string(arena, "name", &aName) ) {
-					ShowError("[BG Conf]: Falha em encontrar 'nome' para a arena #%d\n",i);
+					ShowError("bg_config_read: failed to find 'name' for arena #%d\n",i);
 					continue;
 				}
-				
+
 				if( !libconfig->setting_lookup_string(arena, "event", &aEvent) ) {
-					ShowError("[BG Conf]: Falha em encontrar 'evento' para a arena #%d\n",i);
+					ShowError("bg_config_read: failed to find 'event' for arena #%d\n",i);
 					continue;
 				}
 
 				libconfig->setting_lookup_int(arena, "minLevel", &minLevel);
 				libconfig->setting_lookup_int(arena, "maxLevel", &maxLevel);
-				
+
 				if( minLevel < 0 ) {
-					ShowWarning("[BG Conf]: Lv Minimo (%d) invalido para arena '%s'\n",minLevel,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' minLevel\n",minLevel,aName);
 					minLevel = 0;
 				}
 				if( maxLevel > MAX_LEVEL ) {
-					ShowWarning("[BG Conf]: Lv Maximo (%d) invalido para arena '%s'\n",maxLevel,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' maxLevel\n",maxLevel,aName);
 					maxLevel = MAX_LEVEL;
 				}
-				
+
 				if( !(reward = libconfig->setting_get_member(arena, "reward")) ) {
-					ShowError("[BG Conf]: Falha em encontrar 'recompensa' para a arena '%s'/#%d\n",aName,i);
+					ShowError("bg_config_read: failed to find 'reward' for arena '%s'/#%d\n",aName,i);
 					continue;
 				}
-				
+
 				libconfig->setting_lookup_int(reward, "win", &prizeWin);
 				libconfig->setting_lookup_int(reward, "loss", &prizeLoss);
 				libconfig->setting_lookup_int(reward, "draw", &prizeDraw);
-				
+
 				if( prizeWin < 0 ) {
-					ShowWarning("[BG Conf]: Recompensa[Vit] (%d) invalido para arena '%s'\n",prizeWin,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' reward:win\n",prizeWin,aName);
 					prizeWin = 0;
 				}
 				if( prizeLoss < 0 ) {
-					ShowWarning("[BG Conf]: Recompensa[Perd] (%d) invalido para arena '%s'\n",prizeLoss,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' reward:loss\n",prizeLoss,aName);
 					prizeLoss = 0;
 				}
 				if( prizeDraw < 0 ) {
-					ShowWarning("[BG Conf]: Recompensa[Emp] (%d) invalido para arena '%s'\n",prizeDraw,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' reward:draw\n",prizeDraw,aName);
 					prizeDraw = 0;
 				}
-				
+
 				libconfig->setting_lookup_int(arena, "minPlayers", &minPlayers);
 				libconfig->setting_lookup_int(arena, "maxPlayers", &maxPlayers);
 				libconfig->setting_lookup_int(arena, "minTeamPlayers", &minTeamPlayers);
-				
+
 				if( minPlayers < 0 ) {
-					ShowWarning("[BG Conf]: Jogadores[Min] (%d) invalido para arena '%s'\n",minPlayers,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' minPlayers\n",minPlayers,aName);
 					minPlayers = 0;
 				}
 				if( maxPlayers > MAX_BG_MEMBERS * 2 ) {
-					ShowWarning("[BG Conf]: Jogadores[Max] (%d) invalido para arena '%s'. Altere MAX_BG_MEMBERS\n",maxPlayers,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' maxPlayers, change #define MAX_BG_MEMBERS\n",maxPlayers,aName);
 					maxPlayers = 0;
 				}
 				if( minTeamPlayers < 0 ) {
-					ShowWarning("[BG Conf]: TimeJogadores[Min] (%d) invalido para arena '%s'\n",minTeamPlayers,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' minTeamPlayers\n",minTeamPlayers,aName);
 					minTeamPlayers = 0;
 				}
 
 				if( !libconfig->setting_lookup_string(arena, "delay_var", &aDelayVar) ) {
-					ShowError("[BG Conf]: Falha em encontrar 'Tempo de Espera' para a arena '%s'/#%d\n",aName,i);
+					ShowError("bg_config_read: failed to find 'delay_var' for arena '%s'/#%d\n",aName,i);
 					continue;
 				}
-				
-				
+
 				if( !libconfig->setting_lookup_string(arena, "allowedTypes", &aTeamTypes) ) {
-					ShowError("[BG Conf]: Falha em encontrar 'Tipos Permitidos' para a arena '%s'/#%d\n",aName,i);
+					ShowError("bg_config_read: failed to find 'allowedTypes' for arena '%s'/#%d\n",aName,i);
 					continue;
 				}
-				
+
 				libconfig->setting_lookup_int(arena, "maxDuration", &maxDuration);
-				
+
 				if( maxDuration < 0 ) {
-					ShowWarning("[BG Conf]: Tempo de Partida[Max] (%d) invalido para arena '%s'. Padronizando para 30...\n",maxDuration,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' maxDuration\n",maxDuration,aName);
 					maxDuration = 30;
 				}
-				
+
 				libconfig->setting_lookup_int(arena, "fillDuration", &fillup_duration);
 				libconfig->setting_lookup_int(arena, "pGameDuration", &pregame_duration);
 
 				if( fillup_duration < 20 ) {
-					ShowWarning("[BG Conf]: Tempo de Espera (%d) invalido para arena '%s'. Padronizando para 20...\n",fillup_duration,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' fillDuration, minimum has to be 20, defaulting to 20.\n",fillup_duration,aName);
 					fillup_duration = 20;
 				}
 
 				if( pregame_duration < 20 ) {
-					ShowWarning("[BG Conf]: Tempo antes da Partida (%d) invalido para arena '%s'. Padronizando para 20....\n",pregame_duration,aName);
+					ShowWarning("bg_config_read: invalid %d value for arena '%s' pGameDuration, minimum has to be 20, defaulting to 20.\n",pregame_duration,aName);
 					pregame_duration = 20;
 				}
 
 				allowedTypes = bg->str2teamtype(aTeamTypes);
-				
+
 				CREATE( bg->arena[i], struct bg_arena, 1 );
-				
+
 				bg->arena[i]->id = i;
 				safestrncpy(bg->arena[i]->name, aName, NAME_LENGTH);
 				safestrncpy(bg->arena[i]->npc_event, aEvent, EVENT_NAME_LENGTH);
@@ -488,14 +459,14 @@ void bg_config_read(void) {
 			}
 			bg->arenas = arena_count;
 		}
-		
-		libconfig->destroy(&bg_conf);
 	}
+	libconfig->destroy(&bg_conf);
 }
 struct bg_arena *bg_name2arena (char *name) {
 	int i;
+	nullpo_retr(NULL, name);
 	for(i = 0; i < bg->arenas; i++) {
-		if( strcasecmp(bg->arena[i]->name,name) == 0 )
+		if( strcmpi(bg->arena[i]->name,name) == 0 )
 			return bg->arena[i];
 	}
 	return NULL;
@@ -516,6 +487,8 @@ int bg_id2pos ( int queue_id, int account_id ) {
 	return 0;
 }
 void bg_queue_ready_ack (struct bg_arena *arena, struct map_session_data *sd, bool response) {
+	nullpo_retv(arena);
+	nullpo_retv(sd);
 	if( arena->begin_timer == INVALID_TIMER || !sd->bg_queue.arena || sd->bg_queue.arena != arena ) {
 		bg->queue_pc_cleanup(sd);
 		return;
@@ -526,9 +499,9 @@ void bg_queue_ready_ack (struct bg_arena *arena, struct map_session_data *sd, bo
 		struct hQueue *queue = &script->hq[arena->queue_id];
 		int i, count = 0;
 		sd->bg_queue.ready = 1;
-		
+
 		for( i = 0; i < queue->size; i++ ) {
-			if( queue->item[i] > 0 && ( sd = map->id2sd(queue->item[i]) ) ) {
+			if (queue->item[i] > 0 && (sd = map->id2sd(queue->item[i])) != NULL) {
 				if( sd->bg_queue.ready == 1 )
 					count++;
 			}
@@ -539,11 +512,11 @@ void bg_queue_ready_ack (struct bg_arena *arena, struct map_session_data *sd, bo
 			arena->begin_timer = INVALID_TIMER;
 			bg->begin(arena);
 		}
-
 	}
-	
 }
+
 void bg_queue_player_cleanup(struct map_session_data *sd) {
+	nullpo_retv(sd);
 	if ( sd->bg_queue.client_has_bg_data ) {
 		if( sd->bg_queue.arena )
 			clif->bgqueue_notice_delete(sd,BGQND_CLOSEWINDOW,sd->bg_queue.arena->name);
@@ -560,24 +533,24 @@ void bg_queue_player_cleanup(struct map_session_data *sd) {
 void bg_match_over(struct bg_arena *arena, bool canceled) {
 	struct hQueue *queue = &script->hq[arena->queue_id];
 	int i;
-	
+
+	nullpo_retv(arena);
 	if( !arena->ongoing )
 		return;
 	arena->ongoing = false;
 
 	for( i = 0; i < queue->size; i++ ) {
 		struct map_session_data * sd = NULL;
-		
-		if( queue->item[i] > 0 && ( sd = map->id2sd(queue->item[i]) ) ) {
+
+		if (queue->item[i] > 0 && (sd = map->id2sd(queue->item[i])) != NULL) {
 			if( sd->bg_queue.arena ) {
 				bg->team_leave(sd, 0);
 				bg->queue_pc_cleanup(sd);
 			}
-			if( canceled )
-				clif->colormes(sd->fd,COLOR_RED,"Partida Cancelada: Jogadores Insuficientes.");
-			else {
+			if (canceled)
+				clif->messagecolor_self(sd->fd, COLOR_RED, "BG Match Canceled: not enough players");
+			else
 				pc_setglobalreg(sd, script->add_str(arena->delay_var), (unsigned int)time(NULL));
-			}
 		}
 	}
 
@@ -590,10 +563,11 @@ void bg_begin(struct bg_arena *arena) {
 	struct hQueue *queue = &script->hq[arena->queue_id];
 	int i, count = 0;
 
+	nullpo_retv(arena);
 	for( i = 0; i < queue->size; i++ ) {
 		struct map_session_data * sd = NULL;
-		
-		if( queue->item[i] > 0 && ( sd = map->id2sd(queue->item[i]) ) ) {
+
+		if (queue->item[i] > 0 && (sd = map->id2sd(queue->item[i])) != NULL) {
 			if( sd->bg_queue.ready == 1 )
 				count++;
 			else
@@ -608,23 +582,21 @@ void bg_begin(struct bg_arena *arena) {
 		bg->match_over(arena,true);
 	} else {
 		arena->ongoing = true;
-		
+
 		if( bg->afk_timer_id == INVALID_TIMER && bg->mafksec > 0 )
 			bg->afk_timer_id = timer->add(timer->gettick()+10000,bg->afk_timer,0,0);
-		
+
 		/* TODO: make this a arena-independent var? or just .@? */
 		mapreg->setreg(script->add_str("$@bg_queue_id"),arena->queue_id);
 		mapreg->setregstr(script->add_str("$@bg_delay_var$"),bg->gdelay_var);
-		
+
 		count = 0;
 		for( i = 0; i < queue->size; i++ ) {
 			struct map_session_data * sd = NULL;
-			
-			if( queue->item[i] > 0 && ( sd = map->id2sd(queue->item[i]) ) ) {
-				if( sd->bg_queue.ready == 1 ) {
-					
-					mapreg->setreg(reference_uid(script->add_str("$@bg_member"), count), sd->status.account_id);
 
+			if (queue->item[i] > 0 && (sd = map->id2sd(queue->item[i])) != NULL) {
+				if( sd->bg_queue.ready == 1 ) {
+					mapreg->setreg(reference_uid(script->add_str("$@bg_member"), count), sd->status.account_id);
 					mapreg->setreg(reference_uid(script->add_str("$@bg_member_group"), count),
 								   sd->bg_queue.type == BGQT_GUILD ? sd->status.guild_id :
 								   sd->bg_queue.type == BGQT_PARTY ? sd->status.party_id :
@@ -640,7 +612,7 @@ void bg_begin(struct bg_arena *arena) {
 			}
 		}
 		mapreg->setreg(script->add_str("$@bg_member_size"),count);
-		
+
 		npc->event_do(arena->npc_event);
 	}
 }
@@ -664,7 +636,7 @@ int bg_afk_timer(int tid, int64 tick, int id, intptr_t data) {
 		count++;
 	}
 	mapit->free(iter);
-	
+
 	if( count )
 		bg->afk_timer_id = timer->add(timer->gettick()+10000,bg->afk_timer,0,0);
 	else
@@ -673,13 +645,15 @@ int bg_afk_timer(int tid, int64 tick, int id, intptr_t data) {
 }
 
 void bg_queue_pregame(struct bg_arena *arena) {
-	struct hQueue *queue = &script->hq[arena->queue_id];
+	struct hQueue *queue;
 	int i;
-	
+
+	nullpo_retv(arena);
+	queue = &script->hq[arena->queue_id];
 	for( i = 0; i < queue->size; i++ ) {
 		struct map_session_data * sd = NULL;
-		
-		if( queue->item[i] > 0 && ( sd = map->id2sd(queue->item[i]) ) ) {
+
+		if (queue->item[i] > 0 && (sd = map->id2sd(queue->item[i])) != NULL) {
 			clif->bgqueue_battlebegins(sd,arena->id,SELF);
 		}
 	}
@@ -692,7 +666,10 @@ int bg_fillup_timer(int tid, int64 tick, int id, intptr_t data) {
 }
 
 void bg_queue_check(struct bg_arena *arena) {
-	int count = script->hq[arena->queue_id].items;
+	int count;
+
+	nullpo_retv(arena);
+	count = script->hq[arena->queue_id].items;
 	if( count == arena->max_players ) {
 		if( arena->fillup_timer != INVALID_TIMER ) {
 			timer->delete(arena->fillup_timer,bg->fillup_timer);
@@ -707,17 +684,19 @@ void bg_queue_add(struct map_session_data *sd, struct bg_arena *arena, enum bg_q
 	enum BATTLEGROUNDS_QUEUE_ACK result = bg->can_queue(sd,arena,type);
 	struct hQueue *queue;
 	int i, count = 0;
-	
+
+	nullpo_retv(sd);
+	nullpo_retv(arena);
 	if( arena->begin_timer != INVALID_TIMER || arena->ongoing ) {
 		clif->bgqueue_ack(sd,BGQA_FAIL_QUEUING_FINISHED,arena->id);
 		return;
 	}
-	
+
 	if( result != BGQA_SUCCESS ) {
 		clif->bgqueue_ack(sd,result,arena->id);
 		return;
 	}
-		
+
 	switch( type ) { /* guild/party already validated in can_queue */
 		case BGQT_PARTY: {
 			struct party_data *p = party->search(sd->status.party_id);
@@ -738,7 +717,7 @@ void bg_queue_add(struct map_session_data *sd, struct bg_arena *arena, enum bg_q
 			count = 1;
 			break;
 	}
-	
+
 	if( !(queue = script->queue(arena->queue_id)) || (queue->items+count) > arena->max_players ) {
 		clif->bgqueue_ack(sd,BGQA_FAIL_PPL_OVERAMOUNT,arena->id);
 		return;
@@ -779,49 +758,49 @@ void bg_queue_add(struct map_session_data *sd, struct bg_arena *arena, enum bg_q
 			}
 			break;
 	}
-
 	clif->bgqueue_ack(sd,BGQA_SUCCESS,arena->id);
-	
 	bg->queue_check(arena);
 }
 enum BATTLEGROUNDS_QUEUE_ACK bg_canqueue(struct map_session_data *sd, struct bg_arena *arena, enum bg_queue_types type) {
 	int tick;
 	unsigned int tsec;
-	
+
+	nullpo_retr(BGQA_FAIL_TYPE_INVALID, sd);
+	nullpo_retr(BGQA_FAIL_TYPE_INVALID, arena);
 	if( !(arena->allowed_types & type) )
 		return BGQA_FAIL_TYPE_INVALID;
-	
+
 	if ( sd->status.base_level > arena->max_level || sd->status.base_level < arena->min_level )
 		return BGQA_FAIL_LEVEL_INCORRECT;
-	
+
 	if ( !(sd->class_&JOBL_2) ) /* TODO: maybe make this a per-arena setting, so users may make custom arenas like baby-only,whatever. */
 		return BGQA_FAIL_CLASS_INVALID;
-	
+
 	tsec = (unsigned int)time(NULL);
-	
+
 	if ( ( tick = pc_readglobalreg(sd, script->add_str(bg->gdelay_var)) ) && tsec < tick ) {
 		char response[100];
 		if( (tick-tsec) > 60 )
-			sprintf(response, "Você é um desertor! Aguarde %d minuto(s)  antes de inscrever-se novamente.",(tick-tsec)/60);
+			sprintf(response, "You are a deserter! Wait %d minute(s) before you can apply again",(tick-tsec)/60);
 		else
-			sprintf(response, "You are a deserter! Aguarde %d segundo(s) antes de inscrever-se novamente.",(tick-tsec));
-		clif->colormes(sd->fd,COLOR_RED,response);
+			sprintf(response, "You are a deserter! Wait %d seconds before you can apply again",(tick-tsec));
+		clif->messagecolor_self(sd->fd, COLOR_RED, response);
 		return BGQA_FAIL_DESERTER;
 	}
-	
+
 	if ( ( tick = pc_readglobalreg(sd, script->add_str(arena->delay_var)) ) && tsec < tick ) {
 		char response[100];
 		if( (tick-tsec) > 60 )
-			sprintf(response, "Não tente se reescrever tão rapidamente. Acesse outra arena ou aguarde %d minuto(s)",(tick-tsec)/60);
+			sprintf(response, "You can't reapply to this arena so fast. Apply to the different arena or wait %d minute(s)",(tick-tsec)/60);
 		else
-			sprintf(response, "Não tente se reescrever tão rapidamente. Acesse outra arena ou aguarde %d segundos",(tick-tsec));
-		clif->colormes(sd->fd,COLOR_RED,response);
+			sprintf(response, "You can't reapply to this arena so fast. Apply to the different arena or wait %d seconds",(tick-tsec));
+		clif->messagecolor_self(sd->fd, COLOR_RED, response);
 		return BGQA_FAIL_COOLDOWN;
 	}
 
 	if( sd->bg_queue.arena != NULL )
 		return BGQA_DUPLICATE_REQUEST;
-			
+
 	switch(type) {
 		case BGQT_GUILD:
 			if( !sd->guild || !sd->state.gmaster_flag )
@@ -834,10 +813,12 @@ enum BATTLEGROUNDS_QUEUE_ACK bg_canqueue(struct map_session_data *sd, struct bg_
 					count++;
 				}
 				if ( count < arena->min_team_players ) {
-					char response[100];
+					char response[117];
 					if( count != sd->guild->connect_member && sd->guild->connect_member >= arena->min_team_players )
-						sprintf(response, "Falha na inscrição!! Membros insuficientes no grupo/clã . O mínimo é de %d",arena->min_team_players);
-					clif->colormes(sd->fd,COLOR_RED,response);
+						sprintf(response, "Can't apply: not enough members in your team/guild that have not entered the queue in individual mode, minimum is %d",arena->min_team_players);
+					else
+						sprintf(response, "Can't apply: not enough members in your team/guild, minimum is %d",arena->min_team_players);
+					clif->messagecolor_self(sd->fd, COLOR_RED, response);
 					return BGQA_FAIL_TEAM_COUNT;
 				}
 			}
@@ -862,15 +843,16 @@ enum BATTLEGROUNDS_QUEUE_ACK bg_canqueue(struct map_session_data *sd, struct bg_
 
 					if( !is_leader )
 						return BGQA_NOT_PARTY_GUILD_LEADER;
-										
+
 					if( count < arena->min_team_players ) {
-						char response[100];
+						char response[117];
 						if( count != p->party.count && p->party.count >= arena->min_team_players )
-						sprintf(response, "Falha na inscrição!! Membros insuficientes no grupo/clã . O mínimo é de %d",arena->min_team_players);
-						clif->colormes(sd->fd,COLOR_RED,response);
+							sprintf(response, "Can't apply: not enough members in your team/party that have not entered the queue in individual mode, minimum is %d",arena->min_team_players);
+						else
+							sprintf(response, "Can't apply: not enough members in your team/party, minimum is %d",arena->min_team_players);
+						clif->messagecolor_self(sd->fd, COLOR_RED, response);
 						return BGQA_FAIL_TEAM_COUNT;
 					}
-					
 				} else
 					return BGQA_NOT_PARTY_GUILD_LEADER;
 			}
@@ -878,13 +860,14 @@ enum BATTLEGROUNDS_QUEUE_ACK bg_canqueue(struct map_session_data *sd, struct bg_
 		case BGQT_INDIVIDUAL:/* already did */
 			break;
 		default:
-			ShowDebug("Tipo insuportado na Fila para BG %d\n",type);
+			ShowDebug("bg_canqueue: unknown/unsupported type %d\n",type);
 			return BGQA_DUPLICATE_REQUEST;
 	}
-	
 	return BGQA_SUCCESS;
 }
-void do_init_battleground(void) {
+void do_init_battleground(bool minimal) {
+	if (minimal)
+		return;
 
 	bg->team_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	timer->add_func_list(bg->send_xy_timer, "bg_send_xy_timer");
@@ -892,24 +875,35 @@ void do_init_battleground(void) {
 	bg->config_read();
 }
 
-void do_final_battleground(void) {
-	int i;
-	
-	db_destroy(bg->team_db);
-	
-	for( i = 0; i < bg->arenas; i++ ) {
-		if( bg->arena[i] )
-			aFree(bg->arena[i]);
-	}
-	
-	if( bg->arena )
+/**
+ * @see DBApply
+ */
+int bg_team_db_final(DBKey key, DBData *data, va_list ap) {
+	struct battleground_data* bgd = DB->data2ptr(data);
+
+	HPM->data_store_destroy(&bgd->hdata);
+
+	return 0;
+}
+
+void do_final_battleground(void)
+{
+	bg->team_db->destroy(bg->team_db,bg->team_db_final);
+
+	if (bg->arena) {
+		int i;
+		for (i = 0; i < bg->arenas; i++) {
+			if (bg->arena[i])
+				aFree(bg->arena[i]);
+		}
 		aFree(bg->arena);
+	}
 }
 void battleground_defaults(void) {
 	bg = &bg_s;
-	
+
 	bg->queue_on = false;
-	
+
 	bg->mafksec = 0;
 	bg->afk_timer_id = INVALID_TIMER;
 	bg->arena = NULL;
@@ -947,6 +941,7 @@ void battleground_defaults(void) {
 	bg->send_xy_timer_sub = bg_send_xy_timer_sub;
 	bg->send_xy_timer = bg_send_xy_timer;
 	bg->afk_timer = bg_afk_timer;
+	bg->team_db_final = bg_team_db_final;
 	/* */
 	bg->str2teamtype = bg_str2teamtype;
 	/* */

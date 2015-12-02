@@ -1,23 +1,11 @@
-//------------------------------------------------------------
-// _________                                    
-// \_   ___ \_______  ____   ____  __ __  ______
-// /    \  \/\_  __ \/    \ /    \|  |  \/  ___/
-// \     \____|  | \(  ( ) )   |  \  |  /\___ \ 
-//  \______  /|__|   \____/|___|  /____//____  >
-//         \/                   \/           \/  
-//------------------------------------------------------------
-//                    Cronus Script
-//------------------------------------------------------------
-
-//= Tinturas de roupa
-//===== Por: ==================================================
+//===== Hercules Script ======================================
+//= Clothes Dyer
+//===== By: ==================================================
 //= Usnul
-//===== Versão Atual: =====================================
-//= 2.6
-//===== Compatível Com: ===================================
-//= Cronus
-//===== Descrição: =========================================
-//= Tinturas de roupas padrão.
+//===== Current Version: =====================================
+//= 2.5
+//===== Description: =========================================
+//= Clothes dyer with standard palletes
 //===== Additional Comments: =================================
 //= Fully working
 //= 2.1 Shortened some labels to make this script loading,
@@ -29,55 +17,54 @@
 //	   on official servers and cause your client to crash
 //	   [Playtester]
 //= 2.5 Optimized. [Euphy]
-//= 2.6 Aplicada Tradução(PT_BR). [SkyHD]
 //============================================================
 
 prt_in,284,168,2	script	Dyer Ginedin Rephere	1_M_JOBTESTER,{
 function Dyes;
 
-	set .@EnableDyes,1;	// Disable (set to 0) se palletas causar erros [see note v2.4]
+	.@EnableDyes = 1;	// Disable (set to 0) if palettes cause errors [see note v2.4]
 
-	set .n$,"[Dyer Ginedin Rephere]";
+	.n$ = "[Dyer Ginedin Rephere]";
 	mes .n$;
-	mes "11... 12... Mmm... Bom. Acho que vou ser capaz de terminar antes da festa de hoje à noite. Oh! Eu não percebi que você estava aqui!";
+	mes "11... 12... Mmm... good. I think I'll be able to finish before tonight's party. Oh! I didn't notice you were here!";
 	while(1) {
 		next;
 		mes .n$;
-		mes "Como posso ajudá-lo?";
+		mes "How may I assist you?";
 		next;
-		switch(select("- Conversar:- tingir roupa:- lista de preços:- ^777777Cancelar^000000")) {
+		switch(select("- Talk:- Dye Clothing:- Price List:- ^777777Cancel^000000")) {
 		case 1:
 			mes .n$;
-			mes "A vida pode ter começado um pouco melhor, mas quando eu olho para todos os pedidos que recebi ... Ufa!";
-			mes "Parece que as jovens de Rune-Midgard deve estar muito bem de vida nos dias de hoje.";
+			mes "Life may have gotten a bit better, but when I look at all of the orders I've received... Whew!";
+			mes "It seems that the young women of Rune Midgard must be very well off these days.";
 			next;
 			mes .n$;
-			mes "Não é que eu acho que eles estão entregando-se a qualquer coisa de luxo, você mente.";
-			mes "Eu não acho que haja nada de errado com a busca da beleza e estar na moda.";
+			mes "Not that I think that they are indulging in anything luxurious, mind you.";
+			mes "I don't think there is anything wrong with the pursuit of beauty and being fashionable.";
 			next;
 			mes .n$;
-			mes "Para nós, seres humanos, que não têm pele colorida ou escalas de decoração, roupas são um dos poucos meios que temos de mostrar a nossa personalidade, estilo e beleza.";
+			mes "For us humans, who have no colorful fur or decorative scales, clothes are one of the few ways we have to display our personality, style, and beauty.";
 			next;
 			mes .n$;
-			mes "Haha ... Quando eu penso sobre isso, eu realmente sinto que o meu trabalho vale a pena eu acredito que eu fornecer um serviço que as pessoas desejam.".;
+			mes "Haha... When I think about it, I really feel that my job is worthwhile.  I believe that I provide a service that the people desire.";
 			next;
 			mes .n$;
-			mes "Você pode sentir isso também? energia que é liberada quando tecido áspero e couro são trazidos à vida com mais cor .....?";
+			mes "Can you feel it too? The energy that is released when rough fabric and leather are brought to life with color?.....";
 			next;
 			mes .n$;
-			mes "Embora o processo é muito tedioso e demorado, a alegria e a felicidade que eu sinto quando um vestido é terminado,isso tudo vale a compensa de todo o trabalho duro!";
+			mes "Although the process is very tedious and time consuming, the joy and happiness I feel when a dress is finished more than makes up for all of the hard work!!";
 			break;
 		case 2:
 			mes .n$;
 			if (!.@EnableDyes) {
-				mes "Desculpe, mas eu estou muito ocupado com outros trabalhos para tingir suas roupas.";
+				mes "Sorry, I'm too busy with other jobs to dye your clothes.";
 				break;
 			}
-			mes "Oh... você precisa do meu trabalho? bem... ok, bem.";
+			mes "Oh... you need my work? Well... okay, sounds good.";
 			next;
 			mes .n$;
-			mes "Por favor, escolha uma cor";
-			mes "que combina com você.";
+			mes "Please choose a color";
+			mes "that suits you.";
 			next;
 
 			// Dyes(<color value>,<dye number>{,...});
@@ -119,21 +106,21 @@ function Dyes;
 			case Job_SuperNovice:
 				if (Sex) Dyes(2,1,6,2,5,3,4,4); else Dyes(6,1,3,2,5,3,4,4);
 			default:
-				mes "Uau, eu nunca vi roupas como essa antes! Me desculpe, mas eu não acho que eu posso pintá-lo.";
+				mes "Wow, I've never seen clothes like that before! I'm sorry, but I don't think I can paint it.";
 				close;
 			}
 		case 3:
 			mes .n$;
-			mes "Cada cor custa 10000z e uma tintura:";
+			mes "Each color costs 10000z and 1 dye:";
 			mes " ";
-			mes " - ^FF4422Vermelho^000000: tintura Vermelho";
-			mes " - ^D5A500Amarelo^000000: tintura Limão";
-			mes " - ^AA00AARoxo^000000: tintura Roxo";
-			mes " - ^FF8800Laranja^000000: tintura Laranja";
-			mes " - ^4422FFAzul^000000: tintura AzulCobalto";
-			mes " - ^009500Verde^000000: tintura VerdeEscuro";
-			mes " - Preto: tintura Preto";
-			mes " - Branco: tintura Branco";
+			mes " - ^FF4422Red^000000: Scarlet Dyestuffs";
+			mes " - ^D5A500Yellow^000000: Lemon Dyestuffs";
+			mes " - ^AA00AAViolet^000000: Violet Dyestuffs";
+			mes " - ^FF8800Orange^000000: Orange Dyestuffs";
+			mes " - ^4422FFBlue^000000: CobaltBlue Dyestuffs";
+			mes " - ^009500Green^000000: DarkGreen Dyestuffs";
+			mes " - Black: Black Dyestuffs";
+			mes " - White: White Dyestuffs";
 			break;
 		case 4:
 			goto L_End;
@@ -142,46 +129,46 @@ function Dyes;
 
 L_End:
 	mes .n$;
-	mes "Sinta-se em casa, mesmo que eu não tenho tempo para você.";
+	mes "Make yourself at home. Even though I don't have time for you.";
 	close;
 
 function Dyes {
-	setarray .@DyeName$[0],"a cor padrão","laranja","Roxo","Vermelho","Preto","Verde","Azul","Branco","Amarelo";
+	setarray .@DyeName$[0],"the default color","Orange","Violet","Red","Black","Green","Blue","White","Yellow";
 	setarray .@DyeItems[0],0,980,981,975,983,979,978,982,976;
-	set .@menu$,"- Default:";
-	for(set .@i,0; .@i<getargcount(); set .@i,.@i+2)
-		set .@menu$, .@menu$+"- "+.@DyeName$[getarg(.@i)]+":";
-	set .@menu$, .@menu$+"- ^777777Cancel^000000";
-	set .@s, select(.@menu$)-1;
+	.@menu$ = "- Default:";
+	for(.@i = 0; .@i<getargcount(); .@i += 2)
+		.@menu$ += "- "+.@DyeName$[getarg(.@i)]+":";
+	.@menu$ += "- ^777777Cancel^000000";
+	.@s = select(.@menu$)-1;
 	if (.@s == (getargcount()/2)+1) goto L_End;
 	mes .n$;
 	if (.@s == 0) {
-		mes "Eu posso mudar sua tintura para";
-		mes "o padrão de graça.";
-		mes "Você tem certeza?";
+		mes "I can change your dye to";
+		mes "the default for free.";
+		mes "Are you sure?";
 		next;
-		switch(select("Sim:Não")) {
+		switch(select("Yes:No")) {
 		case 1:
 			mes .n$;
 			setlook 7,0;
-			mes "Suas roupas foram tingidas "+.@DyeName$[0]+".";
+			mes "Your clothes have been dyed "+.@DyeName$[0]+".";
 			close;
 		case 2:
 			goto L_End;
 		}
 	}
 	if (!countitem(.@DyeItems[getarg((.@s-1)*2)])) {
-		mes "Para tingir suas roupas, eu vou precisar das tinturas apropriadas. Por favor, verifique a minha lista de preços para as informações.";
+		mes "For me to dye your clothes, I'll need the appropriate Dyestuffs. Please check my price list for the information.";
 		close;
 	}
 	if (Zeny < 10000) {
-		mes "Sinto muito, mas você não tem dinheiro suficiente.";
+		mes "I'm sorry, but you don't have enough money.";
 		close;
 	}
 	delitem .@DyeItems[getarg((.@s-1)*2)],1;
 	Zeny -= 10000;
 	setlook 7, ((.@s)?(getarg((.@s-1)*2+1)):0);
-	mes "Suas roupas foram tingidas"+((.@s)?.@DyeName$[getarg((.@s-1)*2)]:.@DyeName$[0])+".";
+	mes "Your clothes have been dyed "+((.@s)?.@DyeName$[getarg((.@s-1)*2)]:.@DyeName$[0])+".";
 	close;
 }
 }

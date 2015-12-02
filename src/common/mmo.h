@@ -1,46 +1,53 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
 
 #ifndef COMMON_MMO_H
 #define COMMON_MMO_H
 
-#include <time.h>
+#include "config/core.h"
+#include "common/cbasetypes.h"
 
-#include "../common/cbasetypes.h"
-#include "../common/db.h"
+// server->client protocol version
+//        0 - pre-?
+//        1 - ?                    - 0x196
+//        2 - ?                    - 0x78, 0x79
+//        3 - ?                    - 0x1c8, 0x1c9, 0x1de
+//        4 - ?                    - 0x1d7, 0x1d8, 0x1d9, 0x1da
+//        5 - 2003-12-18aSakexe+   - 0x1ee, 0x1ef, 0x1f0, ?0x1c4, 0x1c5?
+//        6 - 2004-03-02aSakexe+   - 0x1f4, 0x1f5
+//        7 - 2005-04-11aSakexe+   - 0x229, 0x22a, 0x22b, 0x22c
+// 20061023 - 2006-10-23aSakexe+   - 0x6b, 0x6d
+// 20070521 - 2007-05-21aSakexe+   - 0x283
+// 20070821 - 2007-08-21aSakexe+   - 0x2c5
+// 20070918 - 2007-09-18aSakexe+   - 0x2d7, 0x2d9, 0x2da
+// 20071106 - 2007-11-06aSakexe+   - 0x78, 0x7c, 0x22c
+// 20080102 - 2008-01-02aSakexe+   - 0x2ec, 0x2ed , 0x2ee
+// 20081126 - 2008-11-26aSakexe+   - 0x1a2
+// 20090408 - 2009-04-08aSakexe+   - 0x44a (don't use as it overlaps with RE client packets)
+// 20080827 - 2008-08-27aRagexeRE+ - First RE Client
+// 20081217 - 2008-12-17aRagexeRE+ - 0x6d (Note: This one still use old Char Info Packet Structure)
+// 20081218 - 2008-12-17bRagexeRE+ - 0x6d (Note: From this one client use new Char Info Packet Structure)
+// 20090603 - 2009-06-03aRagexeRE+ - 0x7d7, 0x7d8, 0x7d9, 0x7da
+// 20090617 - 2009-06-17aRagexeRE+ - 0x7d9
+// 20090922 - 2009-09-22aRagexeRE+ - 0x7e5, 0x7e7, 0x7e8, 0x7e9
+// 20091103 - 2009-11-03aRagexeRE+ - 0x7f7, 0x7f8, 0x7f9
+// 20100105 - 2010-01-05aRagexeRE+ - 0x133, 0x800, 0x801
+// 20100126 - 2010-01-26aRagexeRE+ - 0x80e
+// 20100223 - 2010-02-23aRagexeRE+ - 0x80f
+// 20100413 - 2010-04-13aRagexeRE+ - 0x6b
+// 20100629 - 2010-06-29aRagexeRE+ - 0x2d0, 0xaa, 0x2d1, 0x2d2
+// 20100721 - 2010-07-21aRagexeRE+ - 0x6b, 0x6d
+// 20100727 - 2010-07-27aRagexeRE+ - 0x6b, 0x6d
+// 20100803 - 2010-08-03aRagexeRE+ - 0x6b, 0x6d, 0x827, 0x828, 0x829, 0x82a, 0x82b, 0x82c, 0x842, 0x843
+// 20101124 - 2010-11-24aRagexeRE+ - 0x856, 0x857, 0x858
+// 20110111 - 2011-01-11aRagexeRE+ - 0x6b, 0x6d
+// 20110928 - 2011-09-28aRagexeRE+ - 0x6b, 0x6d
+// 20111025 - 2011-10-25aRagexeRE+ - 0x6b, 0x6d
+// 20120307 - 2012-03-07aRagexeRE+ - 0x970
 
 #ifndef PACKETVER
-	#define PACKETVER 20131223
+	#define PACKETVER 20141022
 #endif // PACKETVER
 
 //Uncomment the following line if your client is ragexeRE instead of ragexe (required because of conflicting packets in ragexe vs ragexeRE).
@@ -64,14 +71,14 @@
 #define HOTKEY_SAVING
 
 #if PACKETVER < 20090603
-        // (27 = 9 skills x 3 bars)               (0x02b9,191)
-        #define MAX_HOTKEYS 27
+	// (27 = 9 skills x 3 bars)               (0x02b9,191)
+	#define MAX_HOTKEYS 27
 #elif PACKETVER < 20090617
-        // (36 = 9 skills x 4 bars)               (0x07d9,254)
-        #define MAX_HOTKEYS 36
+	// (36 = 9 skills x 4 bars)               (0x07d9,254)
+	#define MAX_HOTKEYS 36
 #else // >= 20090617
-        // (38 = 9 skills x 4 bars & 2 Quickslots)(0x07d9,268)
-        #define MAX_HOTKEYS 38
+	// (38 = 9 skills x 4 bars & 2 Quickslots)(0x07d9,268)
+	#define MAX_HOTKEYS 38
 #endif // 20090603
 #endif // 20070227
 
@@ -94,15 +101,14 @@
 #define MAX_ZENY 1000000000
 
 //Official Limit: 2.1b ( the var that stores the money doesn't go much higher than this by default )
-#define MAX_BANK_ZENY 2100000000
+#define MAX_BANK_ZENY INT_MAX
 
 #define MAX_LEVEL 175
 #define MAX_FAME 1000000000
 #define MAX_CART 100
 #define MAX_SKILL 1478
 #define MAX_SKILL_ID 10015   // [Ind/Hercules] max used skill ID
-//Update this max as necessary. 55 is the value needed for Super Baby currently
-//Raised to 86 since Expanded Super Novice needs it.
+// Update this max as necessary. 86 is the value needed for Expanded Super Novice.
 #define MAX_SKILL_TREE 86
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 20 /* below 20 clips animation */
@@ -110,15 +116,16 @@
 #define MAX_STORAGE 600
 #define MAX_GUILD_STORAGE 600
 #define MAX_PARTY 12
-#define MAX_GUILD (16+10*6)     // Increased max guild members +6 per 1 extension levels [Lupus]
-#define MAX_GUILDPOSITION 20    // Increased max guild positions to accommodate for all members [Valaris] (removed) [PoW]
+#define BASE_GUILD_SIZE 16               // Base guild members (without GD_EXTENSION)
+#define MAX_GUILD (BASE_GUILD_SIZE+10*6) // Increased max guild members +6 per 1 extension levels [Lupus]
+#define MAX_GUILDPOSITION 20             // Increased max guild positions to accomodate for all members [Valaris] (removed) [PoW]
 #define MAX_GUILDEXPULSION 32
 #define MAX_GUILDALLIANCE 16
-#define MAX_GUILDSKILL 15       // Increased max guild skills because of new skills [Sara-chan]
+#define MAX_GUILDSKILL 15                // Increased max guild skills because of new skills [Sara-chan]
 #define MAX_GUILDLEVEL 50
-#define MAX_GUARDIANS 8         // Local max per castle. [Skotlex]
-#define MAX_QUEST_OBJECTIVES 3  // Max quest objectives for a quest
-#define MAX_START_ITEMS 32      // Max number of items allowed to be given to a char whenever it's created. [mkbu95]
+#define MAX_GUARDIANS 8                  // Local max per castle. [Skotlex]
+#define MAX_QUEST_OBJECTIVES 3           // Max quest objectives for a quest
+#define MAX_START_ITEMS 32               // Max number of items allowed to be given to a char whenever it's created. [mkbu95]
 
 // for produce
 #define MIN_ATTRIBUTE 0
@@ -135,10 +142,6 @@
 //For character names, title names, guilds, maps, etc.
 //Includes null-terminator as it is the length of the array.
 #define NAME_LENGTH (23 + 1)
-
-//Apenas para nomes de npcs.
-#define NPC_NAME_LENGTH 36
-
 //For item names, which tend to have much longer names.
 #define ITEM_NAME_LENGTH 50
 //For Map Names, which the client considers to be 16 in length including the .gat extension.
@@ -185,6 +188,18 @@
 #define EL_CLASS_BASE 2114
 #define EL_CLASS_MAX (EL_CLASS_BASE+MAX_ELEMENTAL_CLASS-1)
 
+// The following system marks a different job ID system used by the map server,
+// which makes a lot more sense than the normal one. [Skotlex]
+// These marks the "level" of the job.
+#define JOBL_2_1 0x100 //256
+#define JOBL_2_2 0x200 //512
+#define JOBL_2 0x300
+#define JOBL_UPPER 0x1000 //4096
+#define JOBL_BABY 0x2000  //8192
+#define JOBL_THIRD 0x4000 //16384
+
+struct hplugin_data_store;
+
 enum item_types {
 	IT_HEALING = 0,
 	IT_UNKNOWN, //1
@@ -202,6 +217,7 @@ enum item_types {
 	IT_MAX
 };
 
+#define INDEX_NOT_FOUND (-1) ///< Used as invalid/failure value in various functions that return an index
 
 // Questlog states
 enum quest_state {
@@ -283,12 +299,53 @@ enum e_mmo_charstatus_opt {
 };
 
 enum e_item_bound_type {
+	IBT_NONE      = 0x0,
 	IBT_MIN       = 0x1,
 	IBT_ACCOUNT   = 0x1,
 	IBT_GUILD     = 0x2,
 	IBT_PARTY     = 0x3,
 	IBT_CHARACTER = 0x4,
 	IBT_MAX       = 0x4,
+};
+
+enum {
+	OPTION_NOTHING      = 0x00000000,
+	OPTION_SIGHT        = 0x00000001,
+	OPTION_HIDE         = 0x00000002,
+	OPTION_CLOAK        = 0x00000004,
+	OPTION_FALCON       = 0x00000010,
+	OPTION_RIDING       = 0x00000020,
+	OPTION_INVISIBLE    = 0x00000040,
+	OPTION_ORCISH       = 0x00000800,
+	OPTION_WEDDING      = 0x00001000,
+	OPTION_RUWACH       = 0x00002000,
+	OPTION_CHASEWALK    = 0x00004000,
+	OPTION_FLYING       = 0x00008000, //Note that clientside Flying and Xmas are 0x8000 for clients prior to 2007.
+	OPTION_XMAS         = 0x00010000,
+	OPTION_TRANSFORM    = 0x00020000,
+	OPTION_SUMMER       = 0x00040000,
+	OPTION_DRAGON1      = 0x00080000,
+	OPTION_WUG          = 0x00100000,
+	OPTION_WUGRIDER     = 0x00200000,
+	OPTION_MADOGEAR     = 0x00400000,
+	OPTION_DRAGON2      = 0x00800000,
+	OPTION_DRAGON3      = 0x01000000,
+	OPTION_DRAGON4      = 0x02000000,
+	OPTION_DRAGON5      = 0x04000000,
+	OPTION_HANBOK       = 0x08000000,
+	OPTION_OKTOBERFEST  = 0x10000000,
+#ifndef NEW_CARTS
+	OPTION_CART1     = 0x00000008,
+	OPTION_CART2     = 0x00000080,
+	OPTION_CART3     = 0x00000100,
+	OPTION_CART4     = 0x00000200,
+	OPTION_CART5     = 0x00000400,
+	/*  compound constant for older carts */
+	OPTION_CART      = OPTION_CART1|OPTION_CART2|OPTION_CART3|OPTION_CART4|OPTION_CART5,
+#endif
+	// compound constants
+	OPTION_DRAGON    = OPTION_DRAGON1|OPTION_DRAGON2|OPTION_DRAGON3|OPTION_DRAGON4|OPTION_DRAGON5,
+	OPTION_COSTUME   = OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK|OPTION_OKTOBERFEST,
 };
 
 struct s_skill {
@@ -369,6 +426,14 @@ struct s_homunculus { //[orn]
 	int int_;
 	int dex;
 	int luk;
+
+	int str_value;
+	int agi_value;
+	int vit_value;
+	int int_value;
+	int dex_value;
+	int luk_value;
+
 	int8 spiritball; //for homun S [lighta]
 };
 
@@ -412,8 +477,6 @@ struct mmo_charstatus {
 	int father;
 	int mother;
 	int child;
-	bool cash_shop;
-	bool cash_sopen;
 
 	unsigned int base_exp,job_exp;
 	int zeny;
@@ -464,10 +527,12 @@ struct mmo_charstatus {
 
 	/* `account_data` modifiers */
 	unsigned short mod_exp,mod_drop,mod_death;
-	
+
 	unsigned char font;
 
 	uint32 uniqueitem_counter;
+
+	unsigned char hotkey_rowshift;
 };
 
 typedef enum mail_status {
@@ -572,7 +637,7 @@ struct guild_skill {
 	int id,lv;
 };
 
-struct hChSysCh;
+struct channel_data;
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
@@ -588,14 +653,15 @@ struct guild {
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_expulsion expulsion[MAX_GUILDEXPULSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
-	
+
 	/* used on char.c to state what kind of data is being saved/processed */
 	unsigned short save_flag;
-	
+
 	short *instance;
 	unsigned short instances;
-	
-	struct hChSysCh *channel;
+
+	struct channel_data *channel;
+	struct hplugin_data_store *hdata; ///< HPM Plugin Data Store
 };
 
 struct guild_castle {
@@ -660,6 +726,12 @@ enum { //Change Member Infos
 	GMI_LEVEL,
 };
 
+enum guild_permission { // Guild permissions
+	GPERM_INVITE = 0x01,
+	GPERM_EXPEL = 0x10,
+	GPERM_BOTH = GPERM_INVITE|GPERM_EXPEL,
+};
+
 enum {
 	GD_SKILLBASE=10000,
 	GD_APPROVAL=10000,
@@ -679,7 +751,6 @@ enum {
 	GD_DEVELOPMENT=10014,
 	GD_MAX,
 };
-
 
 //These mark the ID of the jobs, as expected by the client. [Skotlex]
 enum {
@@ -908,6 +979,30 @@ enum e_pc_reg_loading {
 	PRL_ACCL = 0x2,/* local */
 	PRL_ACCG = 0x4,/* global */
 	PRL_ALL  = 0xFF,
+};
+
+/**
+ * Values to be used as operation_type in chrif_char_ask_name
+ */
+enum zh_char_ask_name_type {
+	CHAR_ASK_NAME_BLOCK         = 1, // account block
+	CHAR_ASK_NAME_BAN           = 2, // account ban
+	CHAR_ASK_NAME_UNBLOCK       = 3, // account unblock
+	CHAR_ASK_NAME_UNBAN         = 4, // account unban
+	CHAR_ASK_NAME_CHANGESEX     = 5, // change sex
+	CHAR_ASK_NAME_CHARBAN       = 6, // character ban
+	CHAR_ASK_NAME_CHARUNBAN     = 7, // character unban
+	CHAR_ASK_NAME_CHANGECHARSEX = 8, // change character sex
+};
+
+/**
+ * Values to be used as answer in chrig_char_ask_name_answer
+ */
+enum hz_char_ask_name_answer {
+	CHAR_ASK_NAME_ANS_DONE     = 0, // login-server request done
+	CHAR_ASK_NAME_ANS_NOTFOUND = 1, // player not found
+	CHAR_ASK_NAME_ANS_GMLOW    = 2, // gm level too low
+	CHAR_ASK_NAME_ANS_OFFLINE  = 3, // login-server offline
 };
 
 /* packet size constant for itemlist */

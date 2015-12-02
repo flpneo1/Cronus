@@ -1,123 +1,145 @@
-//-------------------------------------------------------------
-//-     _________                                             -
-//-     \_   ___ \_______  ____   ____  __ __  ______         -
-//-     /    \  \/\_  __ \/    \ /    \|  |  \/  ___/         -
-//-     \     \____|  | \(  ( ) )   |  \  |  /\___ \          -
-//-      \______  /|__|   \____/|___|  /____//____  >         -
-//-             \/                   \/           \/          -
-//-                 www.cronus-emulator.com                   -
-//-------------------------------------------------------------
-//- Guias de Einbroch/Einbech                                 -
-//-------------------------------------------------------------
-//- Por:                                                      -
-//- Muad_dib; L0ne_W0lf                                       -
-//-------------------------------------------------------------
-//- Versão Atual:                                             -
-//- 1.6                                                       -
-//-------------------------------------------------------------
-//- Compatível Com:                                           -
-//- Cronus                                                    -
-//-------------------------------------------------------------
-//- Descrição:                                                -
-//- [Conversão Oficial]                                       -
-//- Guias da cidade de Einbroch/Einbech.                      -
-//-------------------------------------------------------------
-//- Comentários Adicionais:                                   -
-//- 1.0b missing tabs, fixed Guide coords [Lupus]             -
-//- 1.1 added 1 more Guide NPC, thanx to Justin84 [Lupus]     -
-//- 1.2 Optimized, updated common guide names [Lupus]         -
-//- 1.3 Fitted the many lines into 1 or 2, and corrected,     -
-//-     some typos [erKURITA]                                 -
-//- 1.4 Removed Duplicates [Silent]                           -
-//- 1.5 Rescripted to official 10.3 standards. [L0ne_W0lf]    -
-//- 1.6 Aplicada tradução para português(pt_BR). [Cainho]     -
-//-------------------------------------------------------------
+//===== Hercules Script ======================================
+//= Einbroch Guides
+//===== By: ==================================================
+//= Muad_dib; L0ne_W0lf
+//===== Current Version: =====================================
+//= 1.5
+//===== Description: =========================================
+//= [Official Conversion]
+//= Guides for the City of Einbroch
+//===== Additional Comments: =================================
+//= 1.0b missing tabs, fixed Guide coords [Lupus]
+//= 1.1 added 1 more Guide NPC, thanx to Justin84 [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
+//= 1.3 Fitted the many lines into 1 or 2, and corrected some typos [erKURITA]
+//= 1.4 Removed Duplicates [Silent]
+//= 1.5 Rescripted to official 10.3 standards. [L0ne_W0lf]
+//============================================================
 
-einbroch,72,202,4	script	Guia#ein::EinGuide	4_M_EIN_SOLDIER,{
+einbroch,72,202,4	script	Guide#ein::EinGuide	4_M_EIN_SOLDIER,{
 	cutin "ein_soldier",2;
-	mes "[Guia de Einbroch]";
-	mes "Bem-vindo a Einbroch,";
-	mes "a Cidade do Aço.";
-	mes "Nós estamos aqui para ajudar os turistas. Então, por favor, sintam-se à vontade para fazer as perguntas que quiserem.";
-	set .@loop1,1;
+	mes "[Einbroch Guide]";
+	mes "Welcome";
+	mes "to Einbroch,";
+	mes "the City of Steel.";
+	mes "Please ask me if you";
+	mes "have any questions.";
+	.@loop1 = 1;
 	while (.@loop1) {
 		next;
-		switch(select("Guia da Cidade.:Limpar as indicações do minimapa.:Aviso.:Cancelar.")) {
+		switch(select("City Guide.:Remove Marks from Mini-Map.:Notice.:Cancel.")) {
 		case 1:
-			mes "[Guia de Einbroch]";
-			mes "Basta escolher no menu a seguir:";
+			mes "[Einbroch Guide]";
+			mes "Please select";
+			mes "a location from";
+			mes "the following menu.";
 			if (.@compass_check == 0) {
-				mes "Você gostaria";
-				mes "que eu indicasse os locais";
-				mes "em seu Minimapa?";
+				mes "Would you like me";
+				mes "to mark locations";
+				mes "on your Mini-Map?";
 				next;
-				if (select("Sim.:Não.") == 1) set .@compass_check,1;
+				if (select("Yes.:No.") == 1) .@compass_check = 1;
 			}
-			set .@loop2,1;
+			.@loop2 = 1;
 			while(.@loop2) {
-				if (.@wait_button_chk == 0) set .@wait_button_chk,1;
+				if (.@wait_button_chk == 0) .@wait_button_chk = 1;
 				else next;
-				switch(select("^FF0000Aeroporto^000000:Estação de Trem:Fábrica:Praça:Hotel:Loja de Armas:Laboratório:Guilda dos Ferreiros:Torre de Einbroch:Cancelar")) {
+				switch(select("^FF0000Airport^000000:Train Station:Factory:Plaza:Hotel:Weapon Shop:Laboratory:Blacksmith Guild:Einbroch Tower:Cancel")) {
 				case 1:
-					mes "[Guia de Einbroch]";
-					mes "O ^FF0000Aeroporto^000000 está localizado a Noroeste. Lá você poderá usar a alegria e o orgulho de nossa cidade, o Aeroplano. Lembre-se de que você precisará pagar uma taxa de admissão para o Aeroplano.";
+					mes "[Einbroch Guide]";
+					mes "The ^FF0000Airport^000000 is located";
+					mes "in the northwestern part";
+					mes "of the city. There you can";
+					mes "see our city's pride and joy, the Airship. Remember that you must pay admission to board the Airship.";
 					if (.@compass_check)
 						viewpoint 1,63,228,2,0xFF0000;
 					break;
 				case 2:
-					mes "[Guia de Einbroch]";
-					mes "A Estação de Trem está a Nordeste. Nós estamos operando trens para Einbech.";
+					mes "[Einbroch Guide]";
+					mes "The Train Station is";
+					mes "located in the northeast";
+					mes "part of Einbroch. Trains";
+					mes "running between here";
+					mes "and Einbech run all day";
+					mes "long, everyday.";
 					if (.@compass_check)
 						viewpoint 1,236,279,3,0xFF00FF;
 					break;
 				case 3:
-					mes "[Guia de Einbroch]";
-					mes "A Fábrica é a instalação mais importante em Einbech. Fica na parte sul de nossa cidade.";
+					mes "[Einbroch Guide]";
+					mes "The Factory, perhaps the";
+					mes "most important facility in";
+					mes "Einbroch, is located in the";
+					mes "southern part of the city.";
 					if (.@compass_check)
 						viewpoint 1,158,78,4,0xFF00FF;
 					break;
 				case 4:
-					mes "[Guia de Einbroch]";
-					mes "A Praça está localizada a leste do centro da cidade, aonde fica nossa maior zona comercial.";
+					mes "[Einbroch Guide]";
+					mes "The Plaza, our biggest";
+					mes "shopping district, can be";
+					mes "found just east from the";
+					mes "center of Einbroch.";
 					if (.@compass_check)
 						viewpoint 1,232,190,5,0xFF00FF;
 					break;
 				case 5:
-					mes "[Guia de Einbroch]";
-					mes "O Hotel fica a leste da Praça e oferece acomodações de alto nível. Aproveite sua estadia em Einbroch com conforto";
+					mes "[Einbroch Guide]";
+					mes "The Hotel is east of";
+					mes "the Plaza and offers top";
+					mes "caliber accomodations.";
+					mes "There, you can enjoy your";
+					mes "stay in Einbroch in comfort~";
 					if (.@compass_check)
 						viewpoint 1,260,201,6,0x00FF00;
 					break;
 				case 6:
-					mes "[Guia de Einbroch]";
-					mes "A Loja de Armas";
-					mes "está localizada ao norte";
-					mes "da Praça.";
+					mes "[Einbroch Guide]";
+					mes "The Weapon Shop is";
+					mes "located north from the";
+					mes "Plaza. There you can";
+					mes "purchase weapons for";
+					mes "your personal use.";
 					if (.@compass_check)
 						viewpoint 1,215,221,7,0x00FF00;
 					break;
 				case 7:
-					mes "[Guia de Einbroch]";
-					mes "O laboratório é um anexo da fábrica e está localizado na esquina sudeste.";
+					mes "[Einbroch Guide]";
+					mes "The Laboratory is an";
+					mes "annex of the Factory and";
+					mes "is located in the southwest";
+					mes "sector of Einbroch.";
 					if (.@compass_check)
 						viewpoint 1,36,49,8,0x00FF;
 					break;
 				case 8:
-					mes "[Guia de Einbroch]";
-					mes "A Guilda dos Ferreiros está localizada a sudeste. Você poderá aperfeiçoar seus itens com os serviços que eles prestam.";
+					mes "[Einbroch Guide]";
+					mes "The Blacksmith Guild is";
+					mes "located in the southeast";
+					mes "part of Einbroch. You can";
+					mes "upgrade your equipment";
+					mes "by using their services.";
 					if (.@compass_check)
 						viewpoint 1,244,90,9,0x00FF00;
 					break;
 				case 9:
-					mes "[Guia de Einbroch]";
-					mes "A Torre de Einbroch está no centro de Einbroch. Você pode visualizar a cidade toda do topo da torre.";
+					mes "[Einbroch Guide]";
+					mes "The Einbroch Tower is";
+					mes "located in the center of";
+					mes "the city. From the top of";
+					mes "the tower, you can view";
+					mes "all of Einbroch.";
 					if (.@compass_check)
 						viewpoint 1,174,195,10,0xFFFF00;
 					break;
 				case 10:
-					mes "[Guia de Einbroch]";
-					mes "Por favor, escolha a opção 'Limpar as Indicações do menu do Minimapa' caso você não deseje mais ter as indicações dos locais em seu minimapa.";
-					set .@loop2,0;
+					mes "[Einbroch Guide]";
+					mes "Please ask me to ''Remove";
+					mes "Marks from Mini-Map'' if you";
+					mes "no longer wish to have the";
+					mes "location marks displayed";
+					mes "on your Mini-Map.";
+					.@loop2 = 0;
 				}
 			}
 			break;
@@ -131,91 +153,144 @@ einbroch,72,202,4	script	Guia#ein::EinGuide	4_M_EIN_SOLDIER,{
 			viewpoint 2,36,49,8,0x00FF00;
 			viewpoint 2,244,90,9,0x00FF00;
 			viewpoint 2,174,195,10,0xFFFF00;
-			set .@compass_check,0;
-			mes "[Guia de Einbroch]";
-			mes "As indicações em seu minimapa foram removidas.";
-			mes "Volte sempre.";
+			.@compass_check = 0;
+			mes "[Einbroch Guide]";
+			mes "Okay, the marks from";
+			mes "your Mini-Map have been";
+			mes "removed. If you need any";
+			mes "guidance around Einbroch,";
+			mes "please let me or one of the";
+			mes "other Einbroch Guides know.";
 			break;
 		case 3:
-			mes "[Guia de Einbroch]";
-			mes "Nós atualizamos nosso sistema de informações de analógico para o digital mais avançado. Esse novo sistema permite indicar os locais no minimapa para uma navegação mais simples.";
-			mes "Por favor, utilize esse novo sistema de acordo com a sua necessidade e vivencie a extraordinária tecnologia de magia e ciência da República de Schwaltzwald.";
+			mes "[Einbroch Guide]";
+			mes "Through the technology of";
+			mes "the Schwaltzvalt Republic,";
+			mes "we've upgraded to a digital";
+			mes "information system that allows";
+			mes "us to mark locations on your";
+			mes "Mini-Map for easier navigation.";
 			next;
-			mes "[Guia de Einbroch]";
-			mes "Antes de começar, visualize o mapa no canto superior direito. Se não houver um minimapa em sua tela, aperte '^3355FFCtrl+Tab^000000,' ou clique no botão ‘mapa’ na janela Informações Básicas.";
-			mes "Agora, se você conseguir visualizar o minimapa, clique no ícone '^3355FF-^000000' várias vezes para visualizar a cidade inteira.";
+			mes "[Einbroch Guide]";
+			mes "Your Mini-Map is located";
+			mes "in the upper right corner";
+			mes "of the screen. If you can't";
+			mes "see it, press the Ctrl + Tab";
+			mes "keys or click the ''Map'' button in your Basic Info Window.";
+			next;
+			mes "[Einbroch Guide]";
+			mes "On your Mini-Map,";
+			mes "click on the ''+'' and ''-''";
+			mes "symbols to zoom in and";
+			mes "our of your Mini-Map. We";
+			mes "hope you enjoy your travels";
+			mes "here in Einbroch, adventurer.";
 			break;
 		case 4:
-			mes "[Guia de Einbroch]";
-			mes "Esperamos que você aproveite sua viagem.";
-			mes "Ah, por favor, tenha em mente que nós costumamos ter uma 'Situação de Emergência de Poluição do Ar'.";
+			mes "[Einbroch Guide]";
+			mes "We hope that you";
+			mes "enjoy your travels";
+			mes "here in Einbroch.";
+			mes "Oh, and please be";
+			mes "aware of the Smog Alerts.";
 			close2;
-			set .@loop1,0;
+			.@loop1 = 0;
 		}
 	}
 	cutin "ein_soldier",255;
 	end;
 }
 
-einbroch,155,43,4	duplicate(EinGuide)	Guia#2ein	4_M_EIN_SOLDIER
-einbroch,162,317,4	duplicate(EinGuide)	Guia#3ein	4_M_EIN_SOLDIER
+einbroch,155,43,4	duplicate(EinGuide)	Guide#2ein	4_M_EIN_SOLDIER
+einbroch,162,317,4	duplicate(EinGuide)	Guide#3ein	4_M_EIN_SOLDIER
 
-einbech,67,37,4	script	Guia#4ein::EinGuide2	4_M_EIN_SOLDIER,{
+einbech,67,37,4	script	Guide#4ein::EinGuide2	4_M_EIN_SOLDIER,{
 	cutin "ein_soldier",2;
-	mes "[Guia de Einbech]";
-	mes "Bem-vindo a Einbech,";
-	mes "Nós estamos aqui para ajudar os turistas, então por favor sintam-se a vontade para fazer as perguntas que quiserem.";
-	set .@loop1,1;
+	mes "[Einbech Guide]";
+	mes "Welcome to Einbech,";
+	mes "the Mining Town. We're";
+	mes "here to assist tourists,";
+	mes "so if you have any questions,";
+	mes "please feel free to ask us.";
+	.@loop1 = 1;
 	while (.@loop1) {
 		next;
-		switch(select("Guia da Cidade.:Limpar as indicações do minimapa:Aviso.:Cancelar.")) {
+		switch(select("City Guide.:Remove Marks from Mini-Map.:Notice.:Cancel.")) {
 		case 1:
-			mes "[Guia de Einbech]";
-			mes "Basta escolher no menu a seguir:";
+			mes "[Einbech Guide]";
+			mes "Please select";
+			mes "a location from";
+			mes "the following menu.";
 			if (.@compass_check == 0) {
-				mes "Você gostaria de deixar as marcações de local do seu minimapa?";
+				mes "Would you like me";
+				mes "to mark locations";
+				mes "on your Mini-Map?";
 				next;
-				if (select("Sim.:Não.") == 1) set .@compass_check,1;
+				if (select("Yes.:No.") == 1) .@compass_check = 1;
 			}
-			set .@loop2,1;
+			.@loop2 = 1;
 			while (.@loop2) {
-				if (.@wait_button_chk == 0) set .@wait_button_chk,1;
+				if (.@wait_button_chk == 0) .@wait_button_chk = 1;
 				else next;
-				switch(select("Estação de Trem:Taverna:Loja de Utilidades:Guilda dos Espadachins:Mina:Cancelar")) {
+				switch(select("Train Station:Tavern:Tool Shop:Swordman Guild:Mine:Cancel")) {
 				case 1:
-					mes "[Guia de Einbech]";
-					mes "As Estações de Trem estão localizadas a nordeste e a noroeste. Nós temos linhas que operam de Einbech para Einbroch.";
+					mes "[Einbech Guide]";
+					mes "The Train Stations are";
+					mes "located in the northwest";
+					mes "and northeast parts of";
+					mes "Einbech. There, you can";
+					mes "take a train to Einbroch.";
 					if (.@compass_check)
 						viewpoint 1,43,213,2,0xFF0000;
 					break;
 				case 2:
-					mes "[Guia de Einbech]";
-					mes "A Taverna fica na parte sul de nossa cidade. É um bom local para relaxar após um longo dia.";
+					mes "[Einbech Guide]";
+					mes "The Tavern is located";
+					mes "in the southern part of";
+					mes "Einbech. It's a nice place";
+					mes "to relax after a long day.";
 					if (.@compass_check)
 						viewpoint 1,142,112,3,0xFF00FF;
 					break;
 				case 3:
-					mes "[Guia de Einbech]";
-					mes "A Loja de Utilidades está localizada no centro de Einbech, aonde você poderá comprar diversas ferramentas que irá precisar.";
+					mes "[Einbech Guide]";
+					mes "You can find the Tool";
+					mes "Shop in the center of";
+					mes "Einbech. There, you can";
+					mes "purchase any tools you";
+					mes "might need for your travels.";
 					if (.@compass_check)
 						viewpoint 1,176,136,4,0xFF00FF;
 					break;
 				case 4:
-					mes "[Guia de Einbech]";
-					mes "A Guilda dos Espadachins está localizada na parte mais a leste de Einbech. Ela está em construção e eles ainda não estão aceitando inscrições.";
+					mes "[Einbech Guide]";
+					mes "The Swordman Guild";
+					mes "is located in the eastern";
+					mes "outskirts of Einbech. It's";
+					mes "under construction and they";
+					mes "haven't started accepting";
+					mes "applications.";
 					if (.@compass_check)
 						viewpoint 1,250,110,5,0xFF00FF;
 					break;
 				case 5:
-					mes "[Guia de Einbech]";
-					mes "A Mina está localizada ao norte, e ainda está ativa. É lá que conseguimos todos os nossos minerais, apesar de alguns monstros tentarem às vezes interferir em nossa indústria.";
+					mes "[Einbech Guide]";
+					mes "The Mine, which is";
+					mes "Einbech's major industry,";
+					mes "is located in the northern";
+					mes "part of this town. It's where";
+					mes "we get all our ores, although monsters get in the miners' way.";
 					if (.@compass_check)
 						viewpoint 1,138,251,6,0x00FF00;
 					break;
 				case 6:
-					mes "[Guia de Einbech]";
-					mes "Por favor, escolha a 'Limpar as Indicações do menu do Minimapa' se você não deseja mais ter as indicações dos locais em seu minimapa.";
-					set .@loop2,0;
+					mes "[Einbech Guide]";
+					mes "Please ask me to ''Remove";
+					mes "Marks from Mini-Map'' if you";
+					mes "no longer wish to have the";
+					mes "location marks displayed";
+					mes "on your Mini-Map.";
+					.@loop2 = 0;
 				}
 			}
 			break;
@@ -225,36 +300,50 @@ einbech,67,37,4	script	Guia#4ein::EinGuide2	4_M_EIN_SOLDIER,{
 			viewpoint 2,176,136,4,0xFF00FF;
 			viewpoint 2,250,110,5,0xFF00FF;
 			viewpoint 2,138,251,6,0x00FF00;
-			set .@compass_check,0;
-			mes "[Guia de Einbroch]";
-			mes "As indicações em seu";
-			mes "minimapa foram";
-			mes "removidas. Por favor,";
-			mes "volte de novo.";
+			.@compass_check = 0;
+			mes "[Einbech Guide]";
+			mes "Okay, the marks from";
+			mes "your Mini-Map have been";
+			mes "removed. If you need any";
+			mes "guidance around Einbech,";
+			mes "please let me or one of the";
+			mes "other Einbech Guides know.";
 			break;
 		case 3:
-			mes "[Guia de Einbech]";
-			mes "Nós atualizamos nosso sistema de informações de analógico para o digital mais avançado.  Esse novo sistema nos permite indicar os locais no minimapa para uma navegação mais simples.";
-			mes "Por favor, utilize esse novo sistema de acordo com suas necessidades e vivencie a extraordinária tecnologia de magia e ciência da República de Schwaltzwald.";
+			mes "[Einbech Guide]";
+			mes "Through the technology of";
+			mes "the Schwaltzvalt Republic,";
+			mes "we've upgraded to a digital";
+			mes "information system that allows";
+			mes "us to mark locations on your";
+			mes "Mini-Map for easier navigation.";
 			next;
-			mes "[Guia de Einbech]";
-			mes "Antes de começar, visualize o mapa no canto superior direito. Se não houver um minimapa em sua tela, aperte '^3355FFCtrl+Tab^000000,' ou clique no botão ‘mapa’ na janela Informações Básicas.";
-			mes "Agora, se você conseguir visualizar o minimapa, clique no ícone '^3355FF-^000000' várias vezes para visualizar a cidade inteira.";
+			mes "[Einbech Guide]";
+			mes "Your Mini-Map is located";
+			mes "in the upper right corner";
+			mes "of the screen. If you can't";
+			mes "see it, press the Ctrl + Tab";
+			mes "keys or click the ''Map'' button in your Basic Info Window.";
+			next;
+			mes "[Einbech Guide]";
+			mes "On your Mini-Map,";
+			mes "click on the ''+'' and ''-''";
+			mes "symbols to zoom in and";
+			mes "our of your Mini-Map. We";
+			mes "hope you enjoy your travels";
+			mes "here in Einbech, adventurer.";
 			break;
 		case 4:
-			mes "[Guia de Einbech]";
-			mes "Esperamos que você ";
-			mes "aproveite a sua viagem.";
-			mes "E, por favor, tome";
-			mes "cuidado se ficarmos sob";
-			mes "Estado de Emergência";
-			mes "pela Poluição do Ar";
+			mes "[Einbech Guide]";
+			mes "We hope that you";
+			mes "enjoy your travels";
+			mes "here in Einbech.";
 			close2;
-			set .@loop1,0;
+			.@loop1 = 0;
 		}
 	}
 	cutin "ein_soldier",255;
 	end;
 }
 
-einbech,48,214,4	duplicate(EinGuide2)	Guia#5ein	4_M_EIN_SOLDIER
+einbech,48,214,4	duplicate(EinGuide2)	Guide#5ein	4_M_EIN_SOLDIER

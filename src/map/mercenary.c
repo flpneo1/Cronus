@@ -1,73 +1,50 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
+
+#define HERCULES_CORE
 
 #include "mercenary.h"
+
+#include "map/atcommand.h"
+#include "map/battle.h"
+#include "map/chrif.h"
+#include "map/clif.h"
+#include "map/guild.h"
+#include "map/intif.h"
+#include "map/itemdb.h"
+#include "map/log.h"
+#include "map/map.h"
+#include "map/mob.h"
+#include "map/npc.h"
+#include "map/party.h"
+#include "map/pc.h"
+#include "map/pet.h"
+#include "map/script.h"
+#include "map/skill.h"
+#include "map/status.h"
+#include "map/trade.h"
+#include "map/unit.h"
+#include "common/cbasetypes.h"
+#include "common/memmgr.h"
+#include "common/mmo.h"
+#include "common/nullpo.h"
+#include "common/random.h"
+#include "common/showmsg.h"
+#include "common/socket.h"
+#include "common/strlib.h"
+#include "common/timer.h"
+#include "common/utils.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "atcommand.h"
-#include "battle.h"
-#include "chrif.h"
-#include "clif.h"
-#include "guild.h"
-#include "intif.h"
-#include "itemdb.h"
-#include "log.h"
-#include "map.h"
-#include "mob.h"
-#include "npc.h"
-#include "party.h"
-#include "pc.h"
-#include "pet.h"
-#include "script.h"
-#include "skill.h"
-#include "status.h"
-#include "trade.h"
-#include "unit.h"
-#include "../common/cbasetypes.h"
-#include "../common/malloc.h"
-#include "../common/mmo.h"
-#include "../common/random.h"
-#include "../common/showmsg.h"
-#include "../common/socket.h"
-#include "../common/strlib.h"
-#include "../common/timer.h"
-#include "../common/utils.h"
-
 struct mercenary_interface mercenary_s;
+struct s_mercenary_db mercdb[MAX_MERCENARY_CLASS];
+
+struct mercenary_interface *mercenary;
 
 int merc_search_index(int class_)
 {
@@ -95,7 +72,7 @@ int merc_create(struct map_session_data *sd, int class_, unsigned int lifetime)
 	struct s_mercenary merc;
 	struct s_mercenary_db *db;
 	int i;
-	if (!sd) return 0;
+	nullpo_retr(0,sd);
 
 	if( (i = mercenary->search_index(class_)) < 0 )
 		return 0;
@@ -118,18 +95,18 @@ int merc_create(struct map_session_data *sd, int class_, unsigned int lifetime)
 int mercenary_get_lifetime(struct mercenary_data *md)
 {
 	const struct TimerData * td;
-	if(!md || md->contract_timer == INVALID_TIMER )
+	if( md == NULL || md->contract_timer == INVALID_TIMER )
 		return 0;
 
 	td = timer->get(md->contract_timer);
-	return (td) ? DIFF_TICK32(td->tick, timer->gettick()) : 0;
+	return (td != NULL) ? DIFF_TICK32(td->tick, timer->gettick()) : 0;
 }
 
 int mercenary_get_guild(struct mercenary_data *md)
 {
 	int class_;
 
-	if(!md  || !md->db)
+	if( md == NULL || md->db == NULL )
 		return -1;
 
 	class_ = md->db->class_;
@@ -149,7 +126,7 @@ int mercenary_get_faith(struct mercenary_data *md)
 	struct map_session_data *sd;
 	int class_;
 
-	if( !md  || !md->db || (sd = md->master) == NULL )
+	if( md == NULL || md->db == NULL || (sd = md->master) == NULL )
 		return 0;
 
 	class_ = md->db->class_;
@@ -169,7 +146,7 @@ int mercenary_set_faith(struct mercenary_data *md, int value)
 	struct map_session_data *sd;
 	int class_, *faith;
 
-	if( !md || !md->db || (sd = md->master) == NULL )
+	if( md == NULL || md->db == NULL || (sd = md->master) == NULL )
 		return 0;
 
 	class_ = md->db->class_;
@@ -195,7 +172,7 @@ int mercenary_get_calls(struct mercenary_data *md)
 	struct map_session_data *sd;
 	int class_;
 
-	if( !md || !md->db || (sd = md->master) == NULL )
+	if( md == NULL || md->db == NULL || (sd = md->master) == NULL )
 		return 0;
 
 	class_ = md->db->class_;
@@ -215,7 +192,7 @@ int mercenary_set_calls(struct mercenary_data *md, int value)
 	struct map_session_data *sd;
 	int class_, *calls;
 
-	if( !md  || !md->db || (sd = md->master) == NULL )
+	if( md == NULL || md->db == NULL || (sd = md->master) == NULL )
 		return 0;
 
 	class_ = md->db->class_;
@@ -256,7 +233,7 @@ int merc_contract_end_timer(int tid, int64 tick, int id, intptr_t data) {
 
 	if( md->contract_timer != tid )
 	{
-		ShowError("Fim do contrato de ajudante. (%d != %d)\n", md->contract_timer, tid);
+		ShowError("merc_contract_end_timer %d != %d.\n", md->contract_timer, tid);
 		return 0;
 	}
 
@@ -294,7 +271,7 @@ int merc_delete(struct mercenary_data *md, int reply)
 
 void merc_contract_stop(struct mercenary_data *md)
 {
-	if (!md) return;
+	nullpo_retv(md);
 	if( md->contract_timer != INVALID_TIMER )
 		timer->delete(md->contract_timer, mercenary->contract_end_timer);
 	md->contract_timer = INVALID_TIMER;
@@ -359,7 +336,7 @@ int merc_data_received(struct s_mercenary *merc, bool flag) {
 		mercenary->set_calls(md, 1);
 	sd->status.mer_id = merc->mercenary_id;
 
-	if( md && !md->bl.prev && sd->bl.prev) {
+	if( md->bl.prev == NULL && sd->bl.prev != NULL ) {
 		map->addblock(&md->bl);
 		clif->spawn(&md->bl);
 		clif->mercenary_info(sd);
@@ -388,7 +365,7 @@ int mercenary_killbonus(struct mercenary_data *md)
 	const enum sc_type scs[] = { SC_MER_FLEE, SC_MER_ATK, SC_MER_HP, SC_MER_SP, SC_MER_HIT };
 	int index = rnd() % ARRAYLENGTH(scs);
 
-    sc_start(NULL,&md->bl, scs[index], 100, rnd() % 5, 600000);
+	sc_start(NULL,&md->bl, scs[index], 100, rnd() % 5, 600000);
 	return 0;
 }
 
@@ -457,11 +434,11 @@ bool read_mercenarydb_sub(char* str[], int columns, int current) {
 	mstatus->def_ele = ele%10;
 	mstatus->ele_lv = ele/20;
 	if( mstatus->def_ele >= ELE_MAX ) {
-		ShowWarning("Ajudante (MERCID:%d) possui um tipo de elemento invalido (%d)!! Padronizando para Neutro...\n", db->class_, mstatus->def_ele);
+		ShowWarning("Mercenary %d has invalid element type %d (max element is %d)\n", db->class_, mstatus->def_ele, ELE_MAX - 1);
 		mstatus->def_ele = ELE_NEUTRAL;
 	}
 	if( mstatus->ele_lv < 1 || mstatus->ele_lv > 4 ) {
-		ShowWarning("Ajudante (MERCID:%d) possui elemento de NV %d (max: 4)!! Reduzindo para 1...\n", db->class_, mstatus->ele_lv);
+		ShowWarning("Mercenary %d has invalid element level %d (max is 4)\n", db->class_, mstatus->ele_lv);
 		mstatus->ele_lv = 1;
 	}
 
@@ -475,7 +452,7 @@ bool read_mercenarydb_sub(char* str[], int columns, int current) {
 }
 
 int read_mercenarydb(void) {
-	memset(mercenary->db,0,sizeof(mercenary->db));
+	memset(mercenary->db, 0, sizeof(struct s_mercenary_db) * MAX_MERCENARY_CLASS);
 	sv->readdb(map->db_path, "mercenary_db.txt", ',', 26, 26, MAX_MERCENARY_CLASS, mercenary->read_db_sub);
 
 	return 0;
@@ -494,7 +471,7 @@ bool read_mercenary_skilldb_sub(char* str[], int columns, int current)
 		ShowError("read_mercenary_skilldb : Class %d not found in mercenary_db for skill entry.\n", class_);
 		return false;
 	}
-	
+
 	skill_id = atoi(str[1]);
 	if( skill_id < MC_SKILLBASE || skill_id >= MC_SKILLBASE + MAX_MERCSKILL )
 	{
@@ -518,12 +495,13 @@ int read_mercenary_skilldb(void) {
 	return 0;
 }
 
-void do_init_mercenary(void) {
-
+void do_init_mercenary(bool minimal) {
+	if (minimal)
+		return;
 
 	mercenary->read_db();
 	mercenary->read_skilldb();
-	
+
 	timer->add_func_list(mercenary->contract_end_timer, "merc_contract_end_timer");
 }
 
@@ -536,25 +514,25 @@ void mercenary_defaults(void) {
 	mercenary = &mercenary_s;
 
 	/* vars */
-	memset(mercenary->db,0,sizeof(mercenary->db));
+	mercenary->db = mercdb;
+	memset(mercenary->db, 0, sizeof(struct s_mercenary_db) * MAX_MERCENARY_CLASS);
 
 	/* funcs */
-	
 	mercenary->init = do_init_mercenary;
-	
+
 	mercenary->class = merc_class;
 	mercenary->get_viewdata = merc_get_viewdata;
-	
+
 	mercenary->create = merc_create;
 	mercenary->data_received = merc_data_received;
 	mercenary->save = mercenary_save;
-	
+
 	mercenary->heal = mercenary_heal;
 	mercenary->dead = mercenary_dead;
-	
+
 	mercenary->delete = merc_delete;
 	mercenary->contract_stop = merc_contract_stop;
-	
+
 	mercenary->get_lifetime = mercenary_get_lifetime;
 	mercenary->get_guild = mercenary_get_guild;
 	mercenary->get_faith = mercenary_get_faith;
@@ -562,14 +540,14 @@ void mercenary_defaults(void) {
 	mercenary->get_calls = mercenary_get_calls;
 	mercenary->set_calls = mercenary_set_calls;
 	mercenary->kills = mercenary_kills;
-	
+
 	mercenary->checkskill = mercenary_checkskill;
 	mercenary->read_db = read_mercenarydb;
 	mercenary->read_skilldb = read_mercenary_skilldb;
-	
+
 	mercenary->killbonus = mercenary_killbonus;
 	mercenary->search_index = merc_search_index;
-	
+
 	mercenary->contract_end_timer = merc_contract_end_timer;
 	mercenary->read_db_sub = read_mercenarydb_sub;
 	mercenary->read_skill_db_sub = read_mercenary_skilldb_sub;

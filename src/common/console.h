@@ -1,47 +1,15 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
-
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
 
 #ifndef COMMON_CONSOLE_H
 #define COMMON_CONSOLE_H
 
-#include "../config/core.h" // MAX_CONSOLE_INPUT
-
-#include "../common/cbasetypes.h"
-#include "../common/mutex.h"
-#include "../common/spinlock.h"
-#include "../common/sql.h"
-#include "../common/thread.h"
+#include "common/hercules.h"
+#include "common/db.h"
+#include "common/mutex.h"
+#include "common/spinlock.h"
+#include "common/sql.h"
+#include "common/thread.h"
 
 /**
  * Queue Max
@@ -66,37 +34,33 @@ typedef void (*CParseFunc)(char *line);
 #define CPCMD_C_A(x,y) console_parse_ ##y ##x
 
 #define CP_CMD_LENGTH 20
-struct CParseEntry {
-	char cmd[CP_CMD_LENGTH];
-	union {
-		CParseFunc func;
-		struct CParseEntry **next;
-	} u;
-	unsigned short next_count;
+
+enum CONSOLE_PARSE_ENTRY_TYPE {
+	CPET_UNKNOWN,
+	CPET_FUNCTION,
+	CPET_CATEGORY,
 };
 
-struct {
-	char queue[CONSOLE_PARSE_SIZE][MAX_CONSOLE_INPUT];
-	unsigned short count;
-} cinput;
+struct CParseEntry {
+	char cmd[CP_CMD_LENGTH];
+	int type; ///< Entry type (@see enum CONSOLE_PARSE_ENTRY_TYPE)
+	union {
+		CParseFunc func;
+		VECTOR_DECL(struct CParseEntry *) children;
+	} u;
+};
 
 #ifdef CONSOLE_INPUT
 struct console_input_interface {
 	/* vars */
 	SPIN_LOCK ptlock;/* parse thread lock */
-	rAthread pthread;/* parse thread */
-#ifndef WIN32
+	rAthread *pthread;/* parse thread */
 	volatile int32 ptstate;/* parse thread state */
-#else
-    volatile LONG ptstate;
-#endif
-	ramutex ptmutex;/* parse thread mutex */
-	racond ptcond;/* parse thread cond */
+	ramutex *ptmutex;/* parse thread mutex */
+	racond *ptcond;/* parse thread cond */
 	/* */
-	struct CParseEntry **cmd_list;
-	struct CParseEntry **cmds;
-	unsigned int cmd_count;
-	unsigned int cmd_list_count;
+	VECTOR_DECL(struct CParseEntry *) command_list;
+	VECTOR_DECL(struct CParseEntry *) commands;
 	/* */
 	Sql *SQL;
 	/* */
@@ -120,16 +84,14 @@ struct console_interface {
 	void (*init) (void);
 	void (*final) (void);
 	void (*display_title) (void);
-	
-#ifdef WIN32
-	void (*SetFont) (void);
-#endif
 
 	struct console_input_interface *input;
 };
 
-struct console_interface *console;
-
+#ifdef HERCULES_CORE
 void console_defaults(void);
+#endif // HERCULES_CORE
+
+HPShared struct console_interface *console;
 
 #endif /* COMMON_CONSOLE_H */

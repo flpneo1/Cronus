@@ -1,49 +1,25 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
+
+#define HERCULES_CORE
 
 #include "mail.h"
+
+#include "map/atcommand.h"
+#include "map/clif.h"
+#include "map/itemdb.h"
+#include "map/log.h"
+#include "map/pc.h"
+#include "map/storage.h"
+#include "common/nullpo.h"
+#include "common/showmsg.h"
 
 #include <time.h>
 #include <string.h>
 
-#include "atcommand.h"
-#include "clif.h"
-#include "itemdb.h"
-#include "log.h"
-#include "pc.h"
-#include "../common/showmsg.h"
-
 struct mail_interface mail_s;
+struct mail_interface *mail;
 
 void mail_clear(struct map_session_data *sd)
 {
@@ -57,12 +33,12 @@ void mail_clear(struct map_session_data *sd)
 
 int mail_removeitem(struct map_session_data *sd, short flag)
 {
-	if (!sd) return 0;
+	nullpo_ret(sd);
 
 	if( sd->mail.amount )
 	{
 		if (flag) // Item send
-			pc->delitem(sd, sd->mail.index, sd->mail.amount, 1, 0, LOG_TYPE_MAIL);
+			pc->delitem(sd, sd->mail.index, sd->mail.amount, 1, DELITEM_NORMAL, LOG_TYPE_MAIL);
 		else
 			clif->additem(sd, sd->mail.index, sd->mail.amount, 0);
 	}
@@ -75,7 +51,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 
 int mail_removezeny(struct map_session_data *sd, short flag)
 {
-	if (!sd) return 0;
+	nullpo_ret(sd);
 
 	if (flag && sd->mail.zeny > 0)
 	{  //Zeny send
@@ -107,7 +83,7 @@ unsigned char mail_setitem(struct map_session_data *sd, int idx, int amount) {
 
 		if( idx < 0 || idx >= MAX_INVENTORY )
 			return 1;
-		if( amount < 0 || amount > sd->status.inventory[idx].amount )
+		if( amount <= 0 || amount > sd->status.inventory[idx].amount )
 			return 1;
 		if( !pc_can_give_items(sd) || sd->status.inventory[idx].expire_time ||
 			!itemdb_canmail(&sd->status.inventory[idx],pc_get_group_level(sd)) ||
@@ -125,8 +101,9 @@ unsigned char mail_setitem(struct map_session_data *sd, int idx, int amount) {
 bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg)
 {
 	int n;
-	
-	if (!sd || !msg) return false;
+
+	nullpo_retr(false,sd);
+	nullpo_retr(false,msg);
 
 	if( sd->mail.zeny < 0 || sd->mail.zeny > sd->status.zeny )
 		return false;
@@ -145,6 +122,8 @@ bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg)
 
 		memcpy(&msg->item, &sd->status.inventory[n], sizeof(struct item));
 		msg->item.amount = sd->mail.amount;
+		if (msg->item.amount != sd->mail.amount)  // check for amount overflow
+			return false;
 	}
 	else
 		memset(&msg->item, 0x00, sizeof(struct item));
@@ -174,9 +153,9 @@ void mail_getattachment(struct map_session_data* sd, int zeny, struct item* item
 
 int mail_openmail(struct map_session_data *sd)
 {
-	if (!sd) return 0;
+	nullpo_ret(sd);
 
-	if( sd->state.storage_flag || sd->state.vending || sd->state.buyingstore || sd->state.trading )
+	if (sd->state.storage_flag != STORAGE_FLAG_CLOSED || sd->state.vending || sd->state.buyingstore || sd->state.trading)
 		return 0;
 
 	clif->mail_window(sd->fd, 0);
@@ -186,7 +165,8 @@ int mail_openmail(struct map_session_data *sd)
 
 void mail_deliveryfail(struct map_session_data *sd, struct mail_message *msg)
 {
-	if (!sd || !msg) return;
+	nullpo_retv(sd);
+	nullpo_retv(msg);
 
 	if( msg->item.amount > 0 )
 	{
@@ -205,7 +185,7 @@ void mail_deliveryfail(struct map_session_data *sd, struct mail_message *msg)
 // This function only check if the mail operations are valid
 bool mail_invalid_operation(struct map_session_data *sd) {
 	if( !map->list[sd->bl.m].flag.town && !pc->can_use_command(sd, "@mail") ) {
-		ShowWarning("Personagem '%s' tentando realizar o esquema de email inapropriadamente.\n", sd->status.name);
+		ShowWarning("clif->parse_Mail: char '%s' trying to do invalid mail operations.\n", sd->status.name);
 		return true;
 	}
 
@@ -215,7 +195,7 @@ bool mail_invalid_operation(struct map_session_data *sd) {
 void mail_defaults(void)
 {
 	mail = &mail_s;
-	
+
 	mail->clear = mail_clear;
 	mail->removeitem = mail_removeitem;
 	mail->removezeny = mail_removezeny;

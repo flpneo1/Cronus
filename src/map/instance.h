@@ -1,43 +1,15 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
 
 #ifndef MAP_INSTANCE_H
 #define MAP_INSTANCE_H
 
-#include "script.h" // struct reg_db
-#include "../common/cbasetypes.h"
-#include "../common/mmo.h" // struct point
+#include "map/script.h" // struct reg_db
+#include "common/hercules.h"
+#include "common/mmo.h" // struct point
 
+struct hplugin_data_store;
 struct block_list;
 struct map_session_data;
 
@@ -70,24 +42,21 @@ struct instance_data {
 	unsigned short users;
 
 	struct reg_db regs; ///< Instance variables for scripts
-	
+
 	int progress_timer;
 	unsigned int progress_timeout;
 
 	int idle_timer;
 	unsigned int idle_timeout, idle_timeoutval;
-	
+
 	unsigned int original_progress_timeout;
-	
+
 	struct point respawn; ///< reload spawn
-	
-	/** HPM Custom Struct */
-	struct HPluginData **hdata;
-	unsigned int hdatac;
+	struct hplugin_data_store *hdata; ///< HPM Plugin Data Store
 };
 
 struct instance_interface {
-	void (*init) (void);
+	void (*init) (bool minimal);
 	void (*final) (void);
 	void (*reload) (void);
 	/* start point */
@@ -113,8 +82,10 @@ struct instance_interface {
 	int (*destroy_timer) (int tid, int64 tick, int id, intptr_t data);
 };
 
-struct instance_interface *instance;
-
+#ifdef HERCULES_CORE
 void instance_defaults(void);
+#endif // HERCULES_CORE
 
-#endif /* _MAP_INSTANCE_H_ */
+HPShared struct instance_interface *instance;
+
+#endif /* MAP_INSTANCE_H */

@@ -1,41 +1,12 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
 
 #ifndef MAP_VENDING_H
 #define MAP_VENDING_H
 
-#include "../common/cbasetypes.h"
-#include "../common/db.h"
+#include "common/hercules.h"
+#include "common/db.h"
 
 struct map_session_data;
 struct s_search_store_search;
@@ -50,7 +21,7 @@ struct vending_interface {
 	unsigned int next_id;/* next vender id */
 	DBMap *db;
 	/* */
-	void (*init) (void);
+	void (*init) (bool minimal);
 	void (*final) (void);
 	/* */
 	void (*close) (struct map_session_data* sd);
@@ -61,8 +32,10 @@ struct vending_interface {
 	bool (*searchall) (struct map_session_data* sd, const struct s_search_store_search* s);
 };
 
-struct vending_interface *vending;
-
+#ifdef HERCULES_CORE
 void vending_defaults(void);
+#endif // HERCULES_CORE
+
+HPShared struct vending_interface *vending;
 
 #endif /* MAP_VENDING_H */

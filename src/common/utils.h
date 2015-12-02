@@ -1,25 +1,13 @@
-/*--------------------------------------------------------|
-| _________                                               |
-| \_   ___ \_______  ____   ____  __ __  ______           |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/           |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \            |
-|  \______  /|__|   \____/|___|  /____//____  >           |
-|         \/                   \/           \/            |
-|---------------------------------------------------------|
-| Equipe Atual: Cronus Dev Team                           |
-| Autores: Hercules & (*)Athena Dev Team                  |
-| Licença: GNU GPL                                        |
-|----- Descrição: ----------------------------------------|
-|                                                         |
-|---------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
 
 #ifndef COMMON_UTILS_H
 #define COMMON_UTILS_H
 
-#include <stdio.h> // FILE*
-#include <time.h>
+#include "common/hercules.h"
 
-#include "../common/cbasetypes.h"
+#include <stdio.h> // FILE*
 
 /* [HCache] 1-byte key to ensure our method is the latest, we can modify to ensure the method matches */
 #define HCACHE_KEY 'k'
@@ -27,10 +15,18 @@
 //Caps values to min/max
 #define cap_value(a, min, max) (((a) >= (max)) ? (max) : ((a) <= (min)) ? (min) : (a))
 
+#ifdef HERCULES_CORE
+// generate a hex dump of the first 'length' bytes of 'buffer'
+void WriteDump(FILE* fp, const void* buffer, size_t length);
+void ShowDump(const void* buffer, size_t length);
 
-unsigned int get_percentage(const unsigned int A, const unsigned int B); // (A/B -> Rounded down)
-const char* timestamp2string(char* str, size_t size, time_t timestamp, const char* format);
+void findfile(const char *p, const char *pat, void (func)(const char*));
 bool exists(const char* filename);
+
+/// calculates the value of A / B, in percent (rounded down)
+unsigned int get_percentage(const unsigned int A, const unsigned int B);
+
+const char* timestamp2string(char* str, size_t size, time_t timestamp, const char* format);
 
 //////////////////////////////////////////////////////////////////////////
 // byte word dword access [Shinomori]
@@ -53,6 +49,13 @@ extern float GetFloat(const unsigned char* buf);
 
 size_t hread(void * ptr, size_t size, size_t count, FILE * stream);
 size_t hwrite(const void * ptr, size_t size, size_t count, FILE * stream);
+#endif // HERCULES_CORE
+
+#ifdef WIN32
+#define HSleep(x) Sleep(1000 * (x))
+#else // ! WIN32
+#define HSleep(x) sleep(x)
+#endif
 
 /* [Ind/Hercules] Caching */
 struct HCache_interface {
@@ -65,8 +68,10 @@ struct HCache_interface {
 	bool enabled;
 };
 
-struct HCache_interface *HCache;
-
+#ifdef HERCULES_CORE
 void HCache_defaults(void);
+#endif // HERCULES_CORE
+
+HPShared struct HCache_interface *HCache;
 
 #endif /* COMMON_UTILS_H */

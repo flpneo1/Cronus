@@ -1,93 +1,105 @@
-//-------------------------------------------------------------
-//-     _________                                             -
-//-     \_   ___ \_______  ____   ____  __ __  ______         -
-//-     /    \  \/\_  __ \/    \ /    \|  |  \/  ___/         -
-//-     \     \____|  | \(  ( ) )   |  \  |  /\___ \          -
-//-      \______  /|__|   \____/|___|  /____//____  >         -
-//-             \/                   \/           \/          -
-//-                 www.cronus-emulator.com                   -
-//-------------------------------------------------------------
-//- Guias de Umbala                                           -
-//-------------------------------------------------------------
-//- Por:                                                      -
-//- Dizzy, Translated by Celest; L0ne_W0lf                    -
-//-------------------------------------------------------------
-//- Versão Atual:                                             -
-//- 1.3                                                       -
-//-------------------------------------------------------------
-//- Compatível Com:                                           -
-//- Cronus                                                    -
-//-------------------------------------------------------------
-//- Descrição:                                                -
-//- [Conversão Oficial]                                       -
-//- Guias da cidade de Umbala.                                -
-//-------------------------------------------------------------
-//- Comentários Adicionais:                                   -
-//- 1.1 Fixed location command format [Lupus]                 -
-//- 1.2 Optimized, updated common guide names [Lupus]         -
-//- 1.4 Fitted the many lines into 1 or 2,                    -
-//-     and corrected some typos [erKURITA]                   -
-//- 1.5 Rescripted to official 10.3 standards. [L0ne_W0lf]    -
-//- 1.6 Corrected activating ontouch. [L0ne_W0lf]             -
-//- 1.3 Aplicada tradução para português(pt_BR). [Cainho]     -
-//-------------------------------------------------------------
+//===== Hercules Script ======================================
+//= Umbala Guides
+//===== By: ==================================================
+//= Dizzy, Translated by Celest; L0ne_W0lf
+//===== Current Version: =====================================
+//= 1.5
+//===== Description: =========================================
+//= [Official Conversion]
+//= Guide for the City of Umbala
+//===== Additional Comments: =================================
+//= 1.1 Fixed location command format [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
+//= 1.4 Fitted the many lines into 1 or 2, and corrected some typos [erKURITA]
+//= 1.5 Rescripted to official 10.3 standards. [L0ne_W0lf]
+//= 1.6 Corrected activating ontouch. [L0ne_W0lf]
+//============================================================
 
-umbala,128,94,4	script	Explorador#um	4_F_GON,{
-	mes "[Explorador]";
-	mes "Este lugar é muito estranho...";
-	mes "Todas essas trilhas e estradinhas são confusas.";
-	mes "Acho que é o que podemos esperar de uma cultura primitiva como a de Umbala.";
+umbala,128,94,4	script	Adventurer#um	4_F_GON,{
+	mes "[Adventurer]";
+	mes "This is a very strange place...";
+	mes "It's underdeveloped, and there";
+	mes "are a number of complex, winding paths...";
 	next;
-	mes "[Explorador]";
-	mes "Eu estou aqui há alguns meses,";
-	mes "conhecendo a vila e seus habitantes.";
-	mes "Se você tiver alguma pergunta sobre Umbala, posso responder pra você. ";
+	mes "[Adventurer]";
+	mes "However, since I have been here";
+	mes "for months, I am familiar with";
+	mes "this area's geography and points";
+	mes "of interest in this village.";
+	mes "You're welcome to ask me about the";
+	mes "locations of buildings.";
 	next;
-	switch (select ("Indicações:Apagar indicações:Cancelar")) {
+	switch(select("Locations of buildings.:Remove marks on the mini map.:Quit.")) {
 	case 1:
-		mes "[Explorador]";
-		mes "O que você quer localizar?";
+		mes "[Adventurer]";
+		mes "So, which one do you want to check?";
 		next;
-		switch (select ("Casa do Chefe:Casa do Xamã :Loja de Armas:Loja de Utilidades:O Bungee Jumping:Cancelar")) {
+		switch(select("Chief's House:Shaman's House:Weapon Shop:Tool Shop:Bungee Jump Place:Cancel")) {
 		case 1:
-			mes "[Explorador]";
-			mes "A casa do chefe da cidade fica em ^FF3355+^000000.";
-			mes "Só o chefe fala a nossa língua. ";
-			mes "Por isso, é melhor você falar com ele antes de mais nada.";
+			mes "[Adventurer]";
+			mes "I have made a ^FF3355+^000000 mark";
+			mes "on your mini map.";
+			next;
+			mes "[Adventurer]";
+			mes "Only the chief knows the language";
+			mes "of the outside world. So you'd";
+			mes "better visit him before anything else.";
 			viewpoint 1,66,250,2,0xFF3355;
 			break;
 		case 2:
-			mes "[Explorador]";
-			mes "O xamã tem misteriosos poderes.";
-			mes "Sua casa fica em ^CE6300+^000000.";
-			mes "Eu ouvi dizer que ele consegue combinar ou desfazer";
-			mes "propriedades da natureza...";
+			mes "[Adventurer]";
+			mes "I have made a ^CE6300+^000000 mark";
+			mes "on your mini map.";
+			next;
+			mes "[Adventurer]";
+			mes "The Utan Shaman has some";
+			mes "sort of mystic power...";
+			mes "People say she can create rough";
+			mes "enchanted stones, and divide a";
+			mes "pure enchanted stone into rough ones.";
 			viewpoint 1,217,186,3,0xCE6300;
 			break;
 		case 3:
-			mes "[Explorador]";
-			mes "A loja de armas fica em ^55FF33+^000000.";
-			mes "os nativos têm um grande número de armas";
-			mes "no estoque, por causa de invasores estrangeiros.";
+			mes "[Adventurer]";
+			mes "I have made a ^55FF33+^000000 mark";
+			mes "on your mini map.";
+			next;
+			mes "[Adventurer]";
+			mes "The Utans are usually well armed";
+			mes "in preparation for attacks from";
+			mes "their enemies. Apparently, they";
+			mes "have been attacked from the outside many times in the past.";
 			viewpoint 1,126,154,4,0x55FF33;
 			break;
 		case 4:
-			mes "[Explorador]";
-			mes "A loja de utilidades fica em ^3355FF+^000000.";
-			mes "Eles vendem várias coisas que podem te ajudar em sua jornada.";
+			mes "[Adventurer]";
+			mes "I have made a ^3355FF+^000000 mark";
+			mes "on your mini map.";
+			next;
+			mes "[Adventurer]";
+			mes "There are many useful things for";
+			mes "traveling in the Tool Shop, so why don't you go look around?";
 			viewpoint 1,136,127,5,0x3355FF;
 			break;
 		case 5:
-			mes "[Explorador]";
-			mes "Em Umbala existe uma coisa que não se vê em nenhum outro lugar em Rune-Midgard, um Bungee Jumping.";
-			mes "Ele fica em ^00FF00+^000000.";
-			mes "Você pode tentar pular, se tiver coragem pra isso.";
+			mes "[Adventurer]";
+			mes "I have made a ^00FF00+^000000 mark";
+			mes "on your mini map.";
+			next;
+			mes "[Adventurer]";
+			mes "Umbala has a unique locale called";
+			mes "the 'Bungee Jump Place'.";
+			mes "If you're interested in testing";
+			mes "your courage, why don't you go";
+			mes "and partake in this Utan";
+			mes "ritual yourself?";
 			viewpoint 1,139,198,6,0x00FF00;
 			break;
 		case 6:
-			mes "[Explorador]";
-			mes "Se quiser apagar as indicações no minimapa,";
-			mes "Selecione 'Apagar indicações'.";
+			mes "[Adventurer]";
+			mes "If you want to remove the location";
+			mes "marks on your mini map, please";
+			mes "choose 'Remove marks on the mini map' menu.";
 		}
 		break;
 	case 2:
@@ -96,13 +108,14 @@ umbala,128,94,4	script	Explorador#um	4_F_GON,{
 		viewpoint 2,126,154,4,0x55FF33;
 		viewpoint 2,136,127,5,0x3355FF;
 		viewpoint 2,139,198,6,0x00FF00;
-		mes "[Explorador]";
-		mes "Ok, removi as indicações no mapa.";
-		mes "Se precisar achar algum outro lugar, é só pedir.";
+		mes "[Adventurer]";
+		mes "I removed all the marks from your";
+		mes "mini map. Feel free to ask me";
+		mes "again if you want me to mark building locations.";
 		break;
 	case 3:
-		mes "[Explorador]";
-		mes "Ok, aproveite para conhecer a cidade e a cultura de Umbala. Cuide-se.";
+		mes "[Adventurer]";
+		mes "It's fun to learn Utan culture on your own. Take care.";
 		break;
 	}
 	close;

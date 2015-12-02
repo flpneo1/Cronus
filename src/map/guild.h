@@ -1,49 +1,20 @@
-/*-------------------------------------------------------------------------|
-| _________                                                                |
-| \_   ___ \_______  ____   ____  __ __  ______                            |
-| /    \  \/\_  __ \/    \ /    \|  |  \/  ___/                            |
-| \     \____|  | \(  ( ) )   |  \  |  /\___ \                             |
-|  \______  /|__|   \____/|___|  /____//____  >                            |
-|         \/                   \/           \/                             |
-|--------------------------------------------------------------------------|
-| Copyright (C) <2014>  <Cronus - Emulator>                                |
-|	                                                                       |
-| Copyright Portions to eAthena, jAthena and Hercules Project              |
-|                                                                          |
-| This program is free software: you can redistribute it and/or modify     |
-| it under the terms of the GNU General Public License as published by     |
-| the Free Software Foundation, either version 3 of the License, or        |
-| (at your option) any later version.                                      |
-|                                                                          |
-| This program is distributed in the hope that it will be useful,          |
-| but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            |
-| GNU General Public License for more details.                             |
-|                                                                          |
-| You should have received a copy of the GNU General Public License        |
-| along with this program.  If not, see <http://www.gnu.org/licenses/>.    |
-|                                                                          |
-|----- Descrição: ---------------------------------------------------------| 
-|                                                                          |
-|--------------------------------------------------------------------------|
-|                                                                          |
-|----- ToDo: --------------------------------------------------------------| 
-|                                                                          |
-|-------------------------------------------------------------------------*/
+// Copyright (c) Hercules Dev Team, licensed under GNU GPL.
+// See the LICENSE file
+// Portions Copyright (c) Athena Dev Teams
 
 #ifndef MAP_GUILD_H
 #define MAP_GUILD_H
 
-#include "map.h" // EVENT_NAME_LENGTH, TBL_PC
-#include "../common/cbasetypes.h"
-#include "../common/db.h"
-#include "../common/mmo.h"
+#include "map/map.h" // EVENT_NAME_LENGTH, TBL_PC
+#include "common/hercules.h"
+#include "common/db.h"
+#include "common/mmo.h"
 
 /**
  * Defines
  **/
-#define GUILD_SEND_XY_INVERVAL	5000 // Interval of sending coordinates and HP
-#define GUILD_PAYEXP_INVERVAL 10000 //Interval (maximum survival time of the cache, in milliseconds)
+#define GUILD_SEND_XY_INVERVAL  5000 // Interval of sending coordinates and HP
+#define GUILD_PAYEXP_INVERVAL   10000 //Interval (maximum survival time of the cache, in milliseconds)
 #define MAX_GUILD_SKILL_REQUIRE 5
 
 /**
@@ -53,13 +24,15 @@ struct eventlist {
 	char name[EVENT_NAME_LENGTH];
 	struct eventlist *next;
 };
-//For quick linking to a guardian's info. [Skotlex]
+
+/**
+ * Guardian data
+ * For quick linking to a guardian's info. [Skotlex]
+ **/
 struct guardian_data {
 	int number; //0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium.
-	int guild_id;
-	int emblem_id;
-	int guardup_lv; //Level of GD_GUARDUP skill.
-	char guild_name[NAME_LENGTH];
+
+	struct guild *g;
 	struct guild_castle* castle;
 };
 struct guild_expcache {
@@ -77,7 +50,7 @@ struct s_guild_skill_tree {
 
 
 struct guild_interface {
-	void (*init) (void);
+	void (*init) (bool minimal);
 	void (*final) (void);
 	/* */
 	DBMap* db; // int guild_id -> struct guild*
@@ -190,8 +163,10 @@ struct guild_interface {
 	void (*castle_reconnect_sub) (void *key, void *data, va_list ap);
 };
 
-struct guild_interface *guild;
-
+#ifdef HERCULES_CORE
 void guild_defaults(void);
+#endif // HERCULES_CORE
 
-#endif /* _MAP_GUILD_H_ */
+HPShared struct guild_interface *guild;
+
+#endif /* MAP_GUILD_H */
